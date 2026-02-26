@@ -117,7 +117,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     updateExam: async (id, updatedFields) => {
-        const mappedFields: any = {};
+        const mappedFields: Partial<Record<string, string | null>> = {};
         if (updatedFields.title) mappedFields.title = updatedFields.title;
         if (updatedFields.description) mappedFields.description = updatedFields.description;
         if (updatedFields.duration) mappedFields.duration = updatedFields.duration;
@@ -164,7 +164,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     updateSubmission: async (id, updatedFields) => {
-        const mappedFields: any = {};
+        const mappedFields: Record<string, unknown> = {};
         if (updatedFields.status) mappedFields.status = updatedFields.status;
         if (updatedFields.score !== undefined) mappedFields.score = updatedFields.score;
         if (updatedFields.criteria) mappedFields.criteria = updatedFields.criteria;
