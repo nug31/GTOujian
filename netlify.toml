@@ -1,13 +1,10 @@
 [build]
   command = "npm run build"
-  publish = ".next"
-
 [build.environment]
   NODE_VERSION = "24.13.0"
   NODE_OPTIONS = "--max-old-space-size=4096"
   GENERATE_SOURCEMAP = "false"
   NEXT_TELEMETRY_DISABLED = "1"
-  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
