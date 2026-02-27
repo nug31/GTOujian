@@ -2,9 +2,10 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Image as ImageIcon, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { ArrowLeft, Save, Image as ImageIcon, CheckCircle2, AlertCircle, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/dataStore";
+import { supabase } from "@/lib/supabase";
 
 export default function NewExamPage() {
     const router = useRouter();
@@ -13,40 +14,60 @@ export default function NewExamPage() {
     const [description, setDescription] = useState("");
     const [duration, setDuration] = useState("120");
     const [dueDate, setDueDate] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { addExam } = useAppStore();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const url = URL.createObjectURL(file);
-            setPreviewUrl(url);
-            setImageUrl(file.name); // Simpan nama file sebagai URL mockup
+            setImageFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
         }
     };
 
     const removePreview = () => {
         setPreviewUrl(null);
-        setImageUrl("");
+        setImageFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsUploading(true);
 
-        // Simpan ke store
+        let finalImageUrl: string | undefined = undefined;
+
+        if (imageFile) {
+            const fileExt = imageFile.name.split('.').pop();
+            const fileName = `blueprint_${Date.now()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage
+                .from('blueprints')
+                .upload(fileName, imageFile, { upsert: true });
+
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+            } else {
+                const { data: urlData } = supabase.storage
+                    .from('blueprints')
+                    .getPublicUrl(fileName);
+                finalImageUrl = urlData.publicUrl;
+            }
+        }
+
         await addExam({
             title,
             description,
             duration: `${duration} Menit`,
             status: 'Aktif',
-            dueDate: dueDate.replace('T', ', '), // Format sederhana untuk tampilan
-            imageUrl: previewUrl || undefined
+            dueDate: dueDate.replace('T', ', '),
+            imageUrl: finalImageUrl
         });
 
+        setIsUploading(false);
         setSaved(true);
         setTimeout(() => {
             router.push("/teacher/exams");
@@ -160,11 +181,11 @@ export default function NewExamPage() {
                             </div>
 
                             <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                                <button type="button" onClick={() => router.back()} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 font-medium text-sm rounded-lg transition-colors">
+                                <button type="button" onClick={() => router.back()} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 font-medium text-sm rounded-lg transition-colors" disabled={isUploading}>
                                     Batal
                                 </button>
-                                <button type="submit" className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center">
-                                    <Save className="w-4 h-4 mr-2" /> Simpan Soal
+                                <button type="submit" disabled={isUploading} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center">
+                                    {isUploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengunggah...</> : <><Save className="w-4 h-4 mr-2" /> Simpan Soal</>}
                                 </button>
                             </div>
                         </form>
