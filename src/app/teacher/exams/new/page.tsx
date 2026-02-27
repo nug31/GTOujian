@@ -18,6 +18,7 @@ export default function NewExamPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { addExam } = useAppStore();
 
@@ -26,6 +27,7 @@ export default function NewExamPage() {
         if (file) {
             setImageFile(file);
             setPreviewUrl(URL.createObjectURL(file));
+            setUploadError(null);
         }
     };
 
@@ -38,24 +40,28 @@ export default function NewExamPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsUploading(true);
+        setUploadError(null);
 
         let finalImageUrl: string | undefined = undefined;
 
         if (imageFile) {
             const fileExt = imageFile.name.split('.').pop();
             const fileName = `blueprint_${Date.now()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage
+            const { data: uploadData, error: uploadErr } = await supabase.storage
                 .from('blueprints')
                 .upload(fileName, imageFile, { upsert: true });
 
-            if (uploadError) {
-                console.error('Upload error:', uploadError);
-            } else {
-                const { data: urlData } = supabase.storage
-                    .from('blueprints')
-                    .getPublicUrl(fileName);
-                finalImageUrl = urlData.publicUrl;
+            if (uploadErr || !uploadData) {
+                console.error('Upload error:', uploadErr);
+                setUploadError(`Gagal upload gambar: ${uploadErr?.message || 'Unknown error'}. Pastikan storage policy sudah diatur.`);
+                setIsUploading(false);
+                return; // Hentikan — jangan simpan dengan URL yang tidak valid
             }
+
+            const { data: urlData } = supabase.storage
+                .from('blueprints')
+                .getPublicUrl(uploadData.path);
+            finalImageUrl = urlData.publicUrl;
         }
 
         await addExam({
@@ -171,6 +177,13 @@ export default function NewExamPage() {
                                         </div>
                                         <p className="text-sm font-medium text-slate-700">Klik untuk unggah atau seret file gambar</p>
                                         <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                                    </div>
+                                )}
+
+                                {uploadError && (
+                                    <div className="mt-2 flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                        <p className="text-xs">{uploadError}</p>
                                     </div>
                                 )}
                             </div>

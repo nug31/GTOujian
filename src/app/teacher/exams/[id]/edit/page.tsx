@@ -17,11 +17,12 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const [duration, setDuration] = useState("120");
     const [dueDate, setDueDate] = useState("2026-02-28T14:00");
     const [imageUrl, setImageUrl] = useState("");
-    const [storedImageUrl, setStoredImageUrl] = useState<string | null>(null); // URL dari database
+    const [storedImageUrl, setStoredImageUrl] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null); // Hanya untuk file lokal baru
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { exams, updateExam, fetchExams } = useAppStore();
 
@@ -59,6 +60,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
         if (file) {
             setImageFile(file);
             setPreviewUrl(URL.createObjectURL(file));
+            setUploadError(null);
         }
     };
 
@@ -73,6 +75,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsUploading(true);
+        setUploadError(null);
 
         // Jika ada file baru dipilih → upload; jika tidak → pakai URL yang sudah tersimpan di DB
         let finalImageUrl: string | undefined = storedImageUrl || undefined;
@@ -80,18 +83,21 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
         if (imageFile) {
             const fileExt = imageFile.name.split('.').pop();
             const fileName = `blueprint_${Date.now()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage
+            const { data: uploadData, error: uploadErr } = await supabase.storage
                 .from('blueprints')
                 .upload(fileName, imageFile, { upsert: true });
 
-            if (uploadError) {
-                console.error('Upload error:', uploadError);
-            } else {
-                const { data: urlData } = supabase.storage
-                    .from('blueprints')
-                    .getPublicUrl(fileName);
-                finalImageUrl = urlData.publicUrl;
+            if (uploadErr || !uploadData) {
+                console.error('Upload error:', uploadErr);
+                setUploadError(`Gagal upload gambar: ${uploadErr?.message || 'Unknown error'}. Pastikan storage policy sudah diatur.`);
+                setIsUploading(false);
+                return; // Hentikan — jangan simpan dengan URL yang tidak valid
             }
+
+            const { data: urlData } = supabase.storage
+                .from('blueprints')
+                .getPublicUrl(uploadData.path);
+            finalImageUrl = urlData.publicUrl;
         }
 
         await updateExam(params.id, {
@@ -212,6 +218,13 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                         </div>
                                     );
                                 })()}
+
+                                {uploadError && (
+                                    <div className="mt-2 flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                        <p className="text-xs">{uploadError}</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
