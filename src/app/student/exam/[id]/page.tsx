@@ -117,16 +117,16 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                             <div className="w-full h-full" style={{ backgroundImage: 'linear-gradient(to right, #1e293b 1px, transparent 1px), linear-gradient(to bottom, #1e293b 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
                         </div>
 
-                        <div className="z-10 w-full h-full flex flex-col items-center justify-center p-4">
-                            <div className="relative w-full max-w-2xl aspect-auto bg-white rounded-lg shadow-xl overflow-hidden border-4 border-slate-600">
+                        <div className="z-10 w-full h-full flex flex-col items-center justify-center p-2">
+                            <div className="relative w-full h-full bg-white rounded-lg shadow-xl overflow-hidden border-4 border-slate-600 flex items-center justify-center">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={exam.imageUrl || "/image.png"}
                                     alt={`Blueprint Soal ${exam.title}`}
-                                    className="w-full h-auto object-contain bg-white"
+                                    className="w-full h-full object-contain bg-white"
                                 />
                             </div>
-                            <p className="text-slate-400 font-mono text-xs mt-4 bg-slate-800/80 px-3 py-1 rounded-full">BLUEPRINT SOAL</p>
+                            <p className="text-slate-400 font-mono text-xs mt-2 bg-slate-800/80 px-3 py-1 rounded-full flex-shrink-0">BLUEPRINT SOAL</p>
                         </div>
                     </div>
                 </div>
