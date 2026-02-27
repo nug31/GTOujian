@@ -3,8 +3,9 @@
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Clock, Info, Link as LinkIcon, AlertCircle, CheckCircle2, Copy, ShieldAlert, BookOpen, ExternalLink } from "lucide-react";
+import { Clock, Info, Link as LinkIcon, AlertCircle, CheckCircle2, Copy, ShieldAlert, BookOpen, ExternalLink, X } from "lucide-react";
 import { useAppStore } from "@/lib/dataStore";
+import { supabase } from "@/lib/supabase";
 
 export default function ExamPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
     const params = use(paramsPromise);
@@ -21,6 +22,9 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     // Exam state
     const [examStarted, setExamStarted] = useState(false);
     const [agreedToRules, setAgreedToRules] = useState(false);
+
+    // Live Monitoring State
+    const [liveWarning, setLiveWarning] = useState<string | null>(null);
 
     useEffect(() => {
         const info = localStorage.getItem("user_info");
@@ -83,6 +87,48 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         window.addEventListener('beforeunload', handler);
         return () => window.removeEventListener('beforeunload', handler);
     }, [examStarted, submitted]);
+
+    // Supabase Realtime: Presence & Broadcast
+    useEffect(() => {
+        if (!examStarted || submitted || !userInfo || !exam) return;
+
+        const roomName = `exam-${exam.id}`;
+        const channel = supabase.channel(roomName, {
+            config: {
+                presence: {
+                    key: userInfo.nisn,
+                },
+            },
+        });
+
+        // 1. Listen for Broadcast Warnings from Teacher
+        channel.on(
+            'broadcast',
+            { event: 'warning' },
+            (payload) => {
+                // If the message is for everyone, or specifically for this student
+                if (!payload.payload.targetNisn || payload.payload.targetNisn === userInfo.nisn) {
+                    setLiveWarning(payload.payload.message);
+                }
+            }
+        );
+
+        // 2. Subscribe and track presence
+        channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await channel.track({
+                    name: userInfo.name,
+                    nisn: userInfo.nisn,
+                    class: userInfo.class,
+                    onlineAt: new Date().toISOString(),
+                });
+            }
+        });
+
+        return () => {
+            channel.unsubscribe();
+        };
+    }, [examStarted, submitted, userInfo, exam]);
 
     // Disable right-click and common cheat shortcuts on exam page
     useEffect(() => {
@@ -157,7 +203,42 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     if (!exam) return <div className="p-10 text-center">Soal tidak ditemukan.</div>;
 
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col lg:h-screen lg:max-h-screen lg:overflow-hidden">
+        <div className="min-h-screen bg-slate-100 flex flex-col lg:h-screen lg:max-h-screen lg:overflow-hidden relative">
+
+            {/* ===== LIVE WARNING OVERLAY ===== */}
+            <AnimatePresence>
+                {liveWarning && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[60] bg-red-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border-2 border-red-500"
+                        >
+                            <div className="bg-red-600 px-6 py-4 flex items-center gap-3">
+                                <AlertCircle className="w-8 h-8 text-white" />
+                                <h2 className="text-xl font-bold text-white tracking-wide">Pesan Dari Guru</h2>
+                            </div>
+                            <div className="p-6">
+                                <p className="text-slate-800 text-lg font-medium leading-relaxed mb-8">
+                                    "{liveWarning}"
+                                </p>
+                                <button
+                                    onClick={() => setLiveWarning(null)}
+                                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl transition-colors"
+                                >
+                                    Saya Mengerti
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* ===== PRE-EXAM RULES OVERLAY ===== */}
             <AnimatePresence>

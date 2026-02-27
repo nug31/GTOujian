@@ -141,11 +141,19 @@ export default function TeacherExamsDashboard() {
                                         </div>
                                     </div>
                                     <div className="border-t border-slate-100 bg-slate-50 p-3 flex gap-2">
+                                        {exam.status === "Aktif" && (
+                                            <button
+                                                onClick={() => router.push(`/teacher/exams/${exam.id}/monitor`)}
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center flex-1 shadow-sm"
+                                            >
+                                                Live Monitor
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => router.push(`/teacher/exams/${exam.id}/edit`)}
-                                            className="flex-1 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+                                            className={`${exam.status === "Aktif" ? "flex-none" : "flex-1"} bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center`}
                                         >
-                                            <Edit2 className="w-4 h-4 mr-1.5" /> Edit
+                                            <Edit2 className="w-4 h-4" /> {exam.status !== "Aktif" && "Edit"}
                                         </button>
                                         <button
                                             onClick={() => handleDelete(exam.id)}
