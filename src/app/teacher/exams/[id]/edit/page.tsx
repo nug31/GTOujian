@@ -17,8 +17,9 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const [duration, setDuration] = useState("120");
     const [dueDate, setDueDate] = useState("2026-02-28T14:00");
     const [imageUrl, setImageUrl] = useState("");
+    const [storedImageUrl, setStoredImageUrl] = useState<string | null>(null); // URL dari database
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null); // Hanya untuk file lokal baru
     const [saved, setSaved] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +46,10 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
             }
             if (exam.imageUrl) {
                 setImageUrl(exam.imageUrl);
-                setPreviewUrl(exam.imageUrl);
+                // Hanya tampilkan jika URL valid dari Supabase Storage
+                if (exam.imageUrl.startsWith('https://')) {
+                    setStoredImageUrl(exam.imageUrl);
+                }
             }
         }
     }, [params.id, exams]);
@@ -60,6 +64,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
 
     const removePreview = () => {
         setPreviewUrl(null);
+        setStoredImageUrl(null);
         setImageUrl("");
         setImageFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -69,7 +74,8 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
         e.preventDefault();
         setIsUploading(true);
 
-        let finalImageUrl: string | undefined = previewUrl && !imageFile ? previewUrl : undefined;
+        // Jika ada file baru dipilih → upload; jika tidak → pakai URL yang sudah tersimpan di DB
+        let finalImageUrl: string | undefined = storedImageUrl || undefined;
 
         if (imageFile) {
             const fileExt = imageFile.name.split('.').pop();
@@ -179,30 +185,33 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                     onChange={handleFileChange}
                                 />
 
-                                {previewUrl ? (
-                                    <div className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={previewUrl} alt="Preview" className="max-h-full object-contain" />
-                                        <button
-                                            type="button"
-                                            onClick={removePreview}
-                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-indigo-300 bg-indigo-50 hover:bg-slate-100 transition-colors rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group"
-                                    >
-                                        <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                            <ImageIcon className="w-6 h-6 text-indigo-500" />
+                                {(() => {
+                                    const displayUrl = previewUrl || storedImageUrl;
+                                    return displayUrl ? (
+                                        <div className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={displayUrl} alt="Preview" className="max-h-full object-contain" />
+                                            <button
+                                                type="button"
+                                                onClick={removePreview}
+                                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-700">Ganti file gambar blueprint</p>
-                                        <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="border-2 border-dashed border-indigo-300 bg-indigo-50 hover:bg-slate-100 transition-colors rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group"
+                                        >
+                                            <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <ImageIcon className="w-6 h-6 text-indigo-500" />
+                                            </div>
+                                            <p className="text-sm font-medium text-slate-700">Ganti file gambar blueprint</p>
+                                            <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
