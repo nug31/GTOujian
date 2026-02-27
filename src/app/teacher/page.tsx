@@ -215,8 +215,13 @@ export default function TeacherDashboard() {
                                                 {sub.examTitle}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-mono text-xs">
-                                            {formatDateTime(sub.submitTime)}
+                                        <td className="px-6 py-4 whitespace-nowrap flex flex-col items-start justify-center">
+                                            <span className="text-slate-500 font-mono text-xs">{formatDateTime(sub.submitTime)}</span>
+                                            {sub.isLate && (
+                                                <span className="mt-1 px-2 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-bold tracking-wider uppercase border border-red-200">
+                                                    Terlambat
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {sub.status === "graded" ? (

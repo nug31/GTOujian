@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS submissions (
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'graded')),
     score INTEGER,
     onshape_link TEXT NOT NULL,
+    is_late BOOLEAN DEFAULT FALSE,
     criteria JSONB,
     feedback TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

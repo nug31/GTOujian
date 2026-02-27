@@ -94,10 +94,15 @@ export default function GradePage({ params: paramsPromise }: { params: Promise<{
                         <span className="font-bold text-lg tracking-tight">Penilaian: {submission.studentName}</span>
                         <div className="flex flex-col ml-4 border-l border-slate-700 pl-4 py-1">
                             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Waktu Pengiriman</span>
-                            <span className="text-xs text-slate-200 font-mono">
+                            <span className="text-xs text-slate-200 font-mono flex items-center gap-2 mt-0.5">
                                 {new Date(submission.submitTime).toLocaleString('id-ID', {
                                     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
                                 })}
+                                {submission.isLate && (
+                                    <span className="bg-red-500/20 text-red-200 border border-red-500/30 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase">
+                                        Terlambat
+                                    </span>
+                                )}
                             </span>
                         </div>
                     </div>

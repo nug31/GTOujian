@@ -21,6 +21,7 @@ export interface Submission {
     status: 'pending' | 'graded';
     score: number | null;
     onshapeLink: string;
+    isLate?: boolean;
     criteria?: {
         dimension: number;
         efficiency: number;
@@ -92,6 +93,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 status: item.status,
                 score: item.score,
                 onshapeLink: item.onshape_link,
+                isLate: item.is_late,
                 criteria: item.criteria,
                 feedback: item.feedback
             }));
@@ -155,6 +157,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 status: submission.status,
                 score: submission.score,
                 onshape_link: submission.onshapeLink,
+                is_late: submission.isLate || false,
                 criteria: submission.criteria,
                 feedback: submission.feedback
             }]);
@@ -167,6 +170,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         const mappedFields: Record<string, unknown> = {};
         if (updatedFields.status) mappedFields.status = updatedFields.status;
         if (updatedFields.score !== undefined) mappedFields.score = updatedFields.score;
+        if (updatedFields.onshapeLink) mappedFields.onshape_link = updatedFields.onshapeLink;
+        if (updatedFields.isLate !== undefined) mappedFields.is_late = updatedFields.isLate;
         if (updatedFields.criteria) mappedFields.criteria = updatedFields.criteria;
         if (updatedFields.feedback) mappedFields.feedback = updatedFields.feedback;
 

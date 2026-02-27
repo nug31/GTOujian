@@ -140,7 +140,8 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 submitTime: new Date().toLocaleString(),
                 status: 'pending',
                 score: null,
-                onshapeLink: onshapeLink
+                onshapeLink: onshapeLink,
+                isLate: timeLeft <= 0
             });
 
             // Cleanup persistence
