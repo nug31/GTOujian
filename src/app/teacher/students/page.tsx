@@ -223,7 +223,7 @@ export default function StudentManagementPage() {
                 </div>
 
                 {/* Students Table */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30_rgb(0,0,0,0.04)] overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200/80">
                         <thead className="bg-slate-50/80">
                             <tr>
