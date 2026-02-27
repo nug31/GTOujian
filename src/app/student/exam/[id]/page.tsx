@@ -217,7 +217,12 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     if (!exam) return <div className="p-10 text-center">Soal tidak ditemukan.</div>;
 
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col lg:h-screen lg:max-h-screen lg:overflow-hidden relative">
+        <div className="min-h-screen bg-slate-950 flex flex-col lg:h-screen lg:max-h-screen lg:overflow-hidden relative text-slate-200">
+            {/* Dark background decorations */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl animate-pulse-slow" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-blue-600/5 rounded-full blur-3xl" />
+            </div>
 
             {/* ===== LIVE WARNING OVERLAY ===== */}
             <AnimatePresence>
@@ -268,78 +273,79 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.3 }}
-                            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto hidden-scrollbar"
+                            className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto hidden-scrollbar relative"
                         >
                             {/* Header */}
-                            <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5">
+                            <div className="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-800 px-6 py-5">
                                 <div className="flex items-center gap-3 mb-1">
-                                    <div className="w-9 h-9 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                                    <div className="w-9 h-9 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                                         <ShieldAlert className="w-5 h-5 text-amber-400" />
                                     </div>
-                                    <h2 className="text-lg font-bold text-white">Peraturan Ujian</h2>
+                                    <h2 className="text-lg font-bold text-white tracking-wide">Peraturan Ujian</h2>
                                 </div>
-                                <p className="text-slate-400 text-sm ml-12">Baca seluruh peraturan sebelum memulai</p>
+                                <p className="text-slate-400 text-sm ml-12">Panduan kewajiban bagi seluruh peserta ujian</p>
                             </div>
 
                             {/* Exam info badge */}
                             <div className="px-6 pt-5">
-                                <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 flex items-start gap-3">
-                                    <BookOpen className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
+                                <div className="glass-dark border border-indigo-500/30 rounded-xl px-4 py-3 flex items-start gap-3 relative overflow-hidden">
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500"></div>
+                                    <BookOpen className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <p className="font-semibold text-slate-800 text-sm">{exam.title}</p>
-                                        <p className="text-slate-500 text-xs mt-0.5">Durasi: {exam.duration} &nbsp;|&nbsp; Waktu Timer dimulai setelah kamu klik Mulai</p>
+                                        <p className="font-semibold text-white text-sm tracking-wide">{exam.title}</p>
+                                        <p className="text-indigo-200/70 text-xs mt-1">Durasi Ujian: <span className="text-indigo-300 font-medium">{exam.duration}</span></p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Rules */}
-                            <div className="px-6 pt-4 pb-2">
-                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Peraturan yang harus dipatuhi</p>
-                                <ul className="space-y-2.5">
+                            <div className="px-6 pt-5 pb-2">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Kode Etik Ujian</p>
+                                <ul className="space-y-3.5">
                                     {[
-                                        "Kerjakan soal secara mandiri dan jujur tanpa bantuan orang lain.",
-                                        "Buka Onshape di tab baru — jangan tutup halaman ujian ini.",
-                                        "Dilarang membuka website lain selain Onshape selama ujian.",
-                                        "Jangan refresh atau tutup halaman ini — pekerjaan bisa hilang.",
-                                        "Kumpulkan link Onshape sebelum waktu habis.",
-                                        "Pelanggaran aturan dapat mengakibatkan pengurangan nilai atau diskualifikasi.",
+                                        "Kerjakan soal secara mandiri tanpa bantuan eksternal.",
+                                        "Buka lembar kerja Onshape di tab baru secara terpisah.",
+                                        "Dilarang beralih ke website lain selain dokumen Onshape.",
+                                        "Dilarang menutup atau me-refresh halaman penjagaan ini.",
+                                        "Lampirkan link dokumen jawaban Anda sebelum timer habis.",
+                                        "Pelanggaran sistem akan otomatis tercatat sebagai diskualifikasi.",
                                     ].map((rule, i) => (
-                                        <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700">
-                                            <span className="w-5 h-5 bg-slate-100 rounded-full text-xs font-bold text-slate-500 flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                                            {rule}
+                                        <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
+                                            <span className="w-6 h-6 bg-slate-800 border border-slate-700 rounded-full text-[10px] font-bold text-slate-400 flex items-center justify-center flex-shrink-0 shadow-sm">{i + 1}</span>
+                                            <span className="mt-0.5 leading-relaxed">{rule}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
 
                             {/* Warning box */}
-                            <div className="px-6 pt-3 pb-4">
-                                <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-start gap-2.5">
-                                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                                    <p className="text-xs text-red-700 leading-relaxed">
-                                        Setelah kamu klik <strong>Mulai Mengerjakan</strong>, timer akan berjalan dan browser akan memperingatkan jika kamu mencoba menutup atau meninggalkan halaman ini.
+                            <div className="px-6 pt-4 pb-4">
+                                <div className="bg-red-950/30 border border-red-900/50 rounded-lg px-4 py-3.5 flex items-start gap-3">
+                                    <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                                    <p className="text-xs text-red-200/90 leading-relaxed font-outfit">
+                                        Setelah Anda menekan <strong>Mulai Mengerjakan</strong>, timer siber akan bergulir dan browser akan mengunci aktivitas navigasi Anda.
                                     </p>
                                 </div>
                             </div>
 
                             {/* Checkbox + Button */}
-                            <div className="px-6 pb-6 space-y-4">
-                                <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className="px-6 pb-6 space-y-5">
+                                <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-lg hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-700/50">
                                     <input
                                         type="checkbox"
                                         checked={agreedToRules}
                                         onChange={(e) => setAgreedToRules(e.target.checked)}
-                                        className="w-4 h-4 accent-indigo-600 cursor-pointer"
+                                        className="w-4 h-4 accent-indigo-500 cursor-pointer mt-0.5"
                                     />
-                                    <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
-                                        Saya telah membaca dan menyetujui seluruh peraturan ujian di atas.
+                                    <span className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
+                                        Saya bersumpah mematuhi seluruh kode etik ujian ini dan menerima konsekuensinya apabila terbukti melanggar.
                                     </span>
                                 </label>
 
                                 <button
                                     onClick={handleStartExam}
                                     disabled={!agreedToRules}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl shadow-sm transition-all"
+                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:border-slate-700 disabled:cursor-not-allowed border border-indigo-500 text-white font-bold tracking-wide py-3.5 px-4 rounded-xl shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] transition-all uppercase text-sm font-outfit"
                                 >
                                     Mulai Mengerjakan
                                 </button>
@@ -350,127 +356,133 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             </AnimatePresence>
 
             {/* ===== EXAM HEADER ===== */}
-            <header className="bg-slate-900 border-b border-slate-800 text-white flex-shrink-0">
+            <header className="glass-dark border-b border-slate-800/50 text-white flex-shrink-0 z-10 sticky top-0">
                 <div className="px-4 sm:px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <span className="font-bold text-lg tracking-tight">Ujian GTO</span>
-                        <div className="h-4 w-px bg-slate-700" />
-                        <span className="text-slate-300 text-sm">Exam ID: {params.id}</span>
+                        <span className="font-bold text-xl tracking-tight font-outfit bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">
+                            Ujian GTO
+                        </span>
+                        <div className="h-5 w-px bg-slate-700" />
+                        <span className="text-slate-400 text-xs font-mono tracking-wider hidden sm:inline-block">ID: {params.id.split('-')[0]}</span>
                     </div>
 
-                    <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full border ${isLowTime ? 'bg-red-500/10 text-red-400 border-red-500/20 animate-pulse' : 'bg-slate-800 text-slate-300 border-slate-700'
+                    <div className={`flex items-center gap-2.5 px-5 py-1.5 rounded-full border shadow-inner ${isLowTime ? 'bg-red-500/10 text-red-400 border-red-500/30 shadow-red-500/10 animate-pulse' : 'bg-slate-900/60 text-slate-200 border-slate-700/50 shadow-black/20'
                         }`}>
-                        <Clock className="w-5 h-5" />
-                        <span className="font-mono font-medium text-lg tracking-wider">{formatTime(timeLeft)}</span>
+                        <Clock className="w-4 h-4" />
+                        <span className="font-mono font-medium text-lg tracking-widest">{formatTime(timeLeft)}</span>
                     </div>
                 </div>
             </header>
 
             {/* ===== MAIN SPLIT VIEW ===== */}
-            <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
-                {/* Left pane: Blueprint */}
-                <div className="flex-1 bg-slate-800 flex flex-col p-4 border-b lg:border-b-0 lg:border-r border-slate-700 overflow-y-auto min-h-[500px] lg:min-h-0">
-                    <div className="bg-slate-900 rounded-xl p-4 mb-4 border border-slate-700 flex-shrink-0">
-                        <h1 className="text-xl font-bold text-white mb-2">{exam.title}</h1>
-                        <p className="text-slate-400 text-sm">
+            <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden z-10">
+                {/* Left pane: Blueprint Display (Floating style) */}
+                <div className="flex-1 flex flex-col p-4 lg:p-6 lg:border-r border-slate-800/60 overflow-y-auto min-h-[600px] lg:min-h-0">
+                    <div className="mb-4">
+                        <h1 className="text-2xl font-bold text-white mb-1.5 font-outfit tracking-wide">{exam.title}</h1>
+                        <p className="text-slate-400 text-sm max-w-2xl leading-relaxed">
                             {exam.description}
                         </p>
                     </div>
 
-                    <div className="flex-1 bg-slate-900 rounded-xl border border-slate-700 relative overflow-hidden flex flex-col items-center justify-center p-8 group">
-                        {/* Grid background */}
-                        <div className="absolute inset-0 z-0 bg-slate-800 flex items-center justify-center -space-y-4 opacity-50">
-                            <div className="w-full h-full" style={{ backgroundImage: 'linear-gradient(to right, #1e293b 1px, transparent 1px), linear-gradient(to bottom, #1e293b 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-                        </div>
+                    <div className="flex-1 w-full h-full flex items-center justify-center pt-2">
+                        {/* Blueprint Container */}
+                        <div className="relative w-full h-full glass-dark rounded-2xl p-3 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+                            <div className="flex items-center justify-between px-2 pb-3 pt-1 border-b border-slate-700/50 mb-3">
+                                <span className="text-xs font-bold text-indigo-400 tracking-widest uppercase flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                                    Live Blueprint Viewer
+                                </span>
+                                <span className="text-xs text-slate-500 font-mono">Render: {exam.imageUrl ? 'Active' : 'Missing'}</span>
+                            </div>
 
-                        <div className="z-10 w-full h-full flex flex-col items-center justify-center p-2">
-                            <div className="relative w-full h-full bg-white rounded-lg shadow-xl overflow-hidden border-4 border-slate-600 flex items-center justify-center">
+                            <div className="relative flex-1 bg-[#ffffff] rounded-xl overflow-hidden shadow-inner flex items-center justify-center border border-slate-700">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={exam.imageUrl || "/image.png"}
                                     alt={`Blueprint Soal ${exam.title}`}
-                                    className="w-full h-full object-contain bg-white"
+                                    className="w-full h-full object-contain mix-blend-multiply"
+                                    style={{ filter: 'contrast(1.05) brightness(0.98)' }}
                                 />
                             </div>
-                            <p className="text-slate-400 font-mono text-xs mt-2 bg-slate-800/80 px-3 py-1 rounded-full flex-shrink-0">BLUEPRINT SOAL</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Right pane: Submission Form */}
-                <div className="w-full lg:w-[450px] bg-white flex flex-col overflow-y-auto hidden-scrollbar">
-                    <div className="p-6">
+                {/* Right pane: Submission Form (Glass pane) */}
+                <div className="w-full lg:w-[480px] glass-dark border-l-0 lg:border-l border-slate-700/50 flex flex-col overflow-y-auto hidden-scrollbar z-10 shadow-2xl">
+                    <div className="p-6 md:p-8">
                         {!submitted ? (
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 className="flex flex-col h-full"
                             >
-                                <div className="mb-6">
-                                    <h2 className="text-lg font-bold text-slate-900 mb-1">Pengumpulan Hasil Ujian</h2>
-                                    <p className="text-slate-500 text-sm">Masuk ke Onshape, gambar desainmu, pastikan link di-set ke &quot;Public&quot; atau &quot;Link Sharing&quot;, lalu tempel URL-nya di bawah ini.</p>
+                                <div className="mb-8">
+                                    <h2 className="text-xl font-bold text-white mb-2 font-outfit">Lembar Pengumpulan</h2>
+                                    <p className="text-slate-400 text-sm leading-relaxed">Pintu terakhir mesin penjawab. Tautkan cetak biru hasil rancangan 3D Anda di sini.</p>
                                 </div>
 
-                                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
-                                    <h3 className="flex items-center text-sm font-semibold text-blue-800 mb-2">
-                                        <Info className="w-4 h-4 mr-2" /> Langkah-langkah
+                                <div className="bg-blue-900/20 border border-blue-500/20 rounded-xl p-5 mb-8 backdrop-blur-md">
+                                    <h3 className="flex items-center text-sm font-semibold text-blue-300 mb-3 tracking-wide">
+                                        <Info className="w-4 h-4 mr-2" /> Instruksi Pengiriman
                                     </h3>
-                                    <ol className="list-decimal list-inside text-sm text-blue-700 space-y-2 ml-1">
-                                        <li>Buka <strong>Aplikasi Onshape</strong> (disarankan) atau tab baru di browser.</li>
-                                        <li>Selesaikan gambar 3D sesuai instruksi di samping.</li>
-                                        <li>Klik tombol <strong>&quot;Share&quot;</strong> di kanan atas Onshape.</li>
-                                        <li>Pilih tab <strong>&quot;Link Sharing&quot;</strong> &amp; aktifkan.</li>
-                                        <li>Salin link dan tempel ke kolom di bawah ini.</li>
+                                    <ol className="list-decimal list-inside text-sm text-blue-100/80 space-y-2.5 ml-1 marker:text-blue-500">
+                                        <li>Buka platform <strong>Onshape</strong> di lingkungan kerja baru.</li>
+                                        <li>Lakukan perakitan 3D berdasarkan blueprint teknis.</li>
+                                        <li>Tekan <strong>Share</strong> / Bagikan pada menu atas.</li>
+                                        <li>Pastikan mode <strong>Link Sharing</strong> diaktifkan.</li>
+                                        <li>Injeksi link publik ke dalam modul form di bawah.</li>
                                     </ol>
-                                    <div className="mt-4 flex">
+                                    <div className="mt-5 flex">
                                         <a
                                             href={isAndroid ? "intent://cad.onshape.com#Intent;scheme=https;package=com.onshape.app;end" : "https://cad.onshape.com"}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-xs bg-white text-blue-600 border border-blue-200 px-3 py-1.5 rounded-md font-medium hover:bg-blue-50 transition-colors flex items-center"
+                                            className="text-xs bg-blue-600/20 text-blue-300 border border-blue-500/30 px-4 py-2 rounded-lg font-medium hover:bg-blue-600/40 hover:text-white transition-all flex items-center shadow-[0_0_10px_rgba(59,130,246,0.1)]"
                                         >
-                                            {isAndroid ? "Buka Aplikasi Onshape" : "Buka Onshape"} <ExternalLink className="ml-1.5 w-3 h-3" />
+                                            {isAndroid ? "Jalankan Aplikasi Onshape" : "Akses Ruang Onshape"} <ExternalLink className="ml-2 w-3.5 h-3.5" />
                                         </a>
                                     </div>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="mt-auto pt-4 border-t border-slate-100">
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Tautan (Link) Onshape
+                                <form onSubmit={handleSubmit} className="mt-auto pt-4 border-t border-slate-800">
+                                    <div className="mb-6">
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                            Tautan (Link) Dokumen Onshape
                                         </label>
-                                        <div className="relative">
+                                        <div className="relative group">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <LinkIcon className="h-5 w-5 text-slate-400" />
+                                                <LinkIcon className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                                             </div>
                                             <input
                                                 type="url"
                                                 required
                                                 value={onshapeLink}
                                                 onChange={(e) => setOnshapeLink(e.target.value)}
-                                                className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-colors text-slate-900"
+                                                className="block w-full pl-10 pr-3 py-3.5 bg-slate-900/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm transition-all text-white placeholder-slate-600 outline-none"
                                                 placeholder="https://cad.onshape.com/documents/..."
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="bg-amber-50 rounded-lg p-3 flex items-start mb-4 border border-amber-100">
-                                        <AlertCircle className="w-4 h-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                                        <p className="text-xs text-amber-700">Pastikan link dapat diakses oleh siapa saja yang memiliki link (Link Sharing aktif). Jika guru tidak bisa membukanya, nilai bisa dikurangi.</p>
+                                    <div className="bg-amber-950/20 rounded-lg p-3.5 flex items-start mb-6 border border-amber-500/20">
+                                        <AlertCircle className="w-4 h-4 text-amber-500 mr-2.5 mt-0.5 flex-shrink-0" />
+                                        <p className="text-xs text-amber-200/80 leading-relaxed">Sistem tidak dapat menilai tautan privat. Pastikan mode pembagian publik telah diaktifkan, atau risiko pengurangan poin berlaku.</p>
                                     </div>
 
                                     {timeLeft <= 0 && (
-                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 rounded-lg p-3 flex items-start mb-4 border border-red-200">
-                                            <AlertCircle className="w-4 h-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
-                                            <p className="text-xs text-red-700 font-medium">Waktu ujian telah habis! Jawaban Anda akan ditandai terlambat dan dapat mengalami pengurangan nilai.</p>
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-950/30 rounded-lg p-3.5 flex items-start mb-6 border border-red-500/30">
+                                            <AlertCircle className="w-4 h-4 text-red-400 mr-2.5 mt-0.5 flex-shrink-0" />
+                                            <p className="text-xs text-red-200/90 font-medium leading-relaxed">Timer komputasi telah mendatar nol. Penyerahan pada titik ini akan dicatat dalam database sebagai [LATE SUBMISSION].</p>
                                         </motion.div>
                                     )}
 
                                     <button
                                         type="submit"
-                                        className={`w-full text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 ${timeLeft <= 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                        className={`w-full text-white font-bold tracking-wide uppercase text-sm py-4 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 font-outfit ${timeLeft <= 0 ? 'bg-red-600 hover:bg-red-500 shadow-red-900/50' : 'bg-blue-600 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-500'}`}
                                     >
-                                        {timeLeft <= 0 ? "Tetap Kumpulkan (Terlambat)" : "Kumpulkan Jawaban"}
+                                        {timeLeft <= 0 ? "Bypass & Kumpulkan Paksa" : "Kirim Jawaban Ke Server"}
                                     </button>
                                 </form>
                             </motion.div>
@@ -480,14 +492,18 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                 animate={{ opacity: 1, scale: 1 }}
                                 className="flex flex-col items-center justify-center h-full text-center py-12"
                             >
-                                <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6">
-                                    <CheckCircle2 className="w-8 h-8" />
+                                <div className="w-20 h-20 bg-green-500/10 border border-green-500/20 text-green-400 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+                                    <CheckCircle2 className="w-10 h-10" />
                                 </div>
-                                <h2 className="text-2xl font-bold text-slate-900 mb-2">Berhasil Terkirim!</h2>
-                                <p className="text-slate-500 mb-8 max-w-[250px]">
-                                    Jawaban ujian Anda telah tersimpan. Mengalihkan kembali ke dashboard...
+                                <h2 className="text-3xl font-bold text-white mb-3 font-outfit tracking-wide">Transmisi Sukses</h2>
+                                <p className="text-slate-400 mb-8 max-w-[280px] leading-relaxed">
+                                    Data ujian berhasil dienkripsi dan dikirim ke server inti. Memutus sambungan...
                                 </p>
-                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-900"></div>
+                                <div className="flex gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                                </div>
                             </motion.div>
                         )}
                     </div>
