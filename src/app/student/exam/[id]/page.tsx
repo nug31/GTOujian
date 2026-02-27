@@ -86,7 +86,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             <header className="bg-slate-900 border-b border-slate-800 text-white flex-shrink-0">
                 <div className="px-4 sm:px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <span className="font-bold text-lg tracking-tight">UjianPraktik</span>
+                        <span className="font-bold text-lg tracking-tight">Ujian GTO</span>
                         <div className="h-4 w-px bg-slate-700" />
                         <span className="text-slate-300 text-sm">Exam ID: {params.id}</span>
                     </div>

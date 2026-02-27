@@ -57,7 +57,7 @@ export default function TeacherDashboard() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Wrench className="w-6 h-6 text-indigo-400" />
-                        <span className="font-bold text-lg tracking-tight">UjianPraktik</span>
+                        <span className="font-bold text-lg tracking-tight">Ujian GTO</span>
                         <span className="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-semibold px-2 py-0.5 rounded-full ml-2">Guru</span>
                     </div>
                     <div className="flex items-center gap-4">

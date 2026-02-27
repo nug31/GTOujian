@@ -42,7 +42,7 @@ export default function StudentDashboard() {
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-blue-600">
                         <Wrench className="w-6 h-6" />
-                        <span className="font-bold text-lg tracking-tight text-slate-900">UjianPraktik</span>
+                        <span className="font-bold text-lg tracking-tight text-slate-900">Ujian GTO</span>
                         <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full ml-2">Siswa</span>
                     </div>
                     <div className="flex items-center gap-4">

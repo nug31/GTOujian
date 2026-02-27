@@ -88,7 +88,7 @@ export default function LoginPage() {
             >
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white text-center">
                     <Wrench className="w-12 h-12 mx-auto mb-4 opacity-90" />
-                    <h1 className="text-2xl font-bold tracking-tight">UjianPraktik</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Ujian GTO</h1>
                     <p className="text-blue-100 text-sm mt-2">Gambar Teknik Otomotif</p>
                 </div>
 
