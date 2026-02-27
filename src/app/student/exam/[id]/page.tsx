@@ -93,6 +93,8 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         if (!examStarted || submitted || !userInfo || !exam) return;
 
         const roomName = `exam-${exam.id}`;
+        console.log("Joining Presence Room:", roomName);
+
         const channel = supabase.channel(roomName, {
             config: {
                 presence: {
@@ -114,21 +116,24 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         );
 
         // 2. Subscribe and track presence
-        channel.subscribe(async (status) => {
+        channel.subscribe(async (status, err) => {
+            console.log("Student Realtime Status:", status, err);
             if (status === 'SUBSCRIBED') {
-                await channel.track({
+                const trackRes = await channel.track({
                     name: userInfo.name,
                     nisn: userInfo.nisn,
                     class: userInfo.class,
                     onlineAt: new Date().toISOString(),
                 });
+                console.log("Student Presence Tracked:", trackRes);
             }
         });
 
         return () => {
+            console.log("Leaving Presence Room:", roomName);
             channel.unsubscribe();
         };
-    }, [examStarted, submitted, userInfo, exam]);
+    }, [examStarted, submitted, userInfo?.nisn, exam?.id]);
 
     // Disable right-click and common cheat shortcuts on exam page
     useEffect(() => {

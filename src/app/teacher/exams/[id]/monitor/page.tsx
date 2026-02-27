@@ -45,28 +45,33 @@ export default function ExamMonitorPage({ params: paramsPromise }: { params: Pro
         newChannel
             .on('presence', { event: 'sync' }, () => {
                 const newState = newChannel.presenceState();
+                console.log("Sync Presence:", newState);
                 const students: ActiveStudent[] = [];
 
                 for (const key in newState) {
-                    // newState[key][0] usually contains presence_ref and any custom data we passed in track()
                     const presenceData = newState[key][0] as any;
                     if (presenceData && presenceData.nisn) {
                         students.push({
                             nisn: presenceData.nisn,
                             name: presenceData.name,
                             class: presenceData.class,
-                            onlineAt: presenceData.onlineAt
+                            onlineAt: presenceData.onlineAt || new Date().toISOString()
                         });
                     }
                 }
 
-                // Sort by name
                 students.sort((a, b) => a.name.localeCompare(b.name));
                 setActiveStudents(students);
             })
-            .subscribe(async (status) => {
+            .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+                console.log('Join Presence:', key, newPresences);
+            })
+            .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+                console.log('Leave Presence:', key, leftPresences);
+            })
+            .subscribe(async (status, err) => {
+                console.log("Monitor channel status:", status, err);
                 if (status === 'SUBSCRIBED') {
-                    // Teacher doesn't need to track presence, just listen
                     console.log("Connected to monitor channel:", roomName);
                 }
             });
