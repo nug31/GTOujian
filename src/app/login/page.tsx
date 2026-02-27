@@ -187,9 +187,6 @@ export default function LoginPage() {
                 </div>
             </motion.div>
 
-            <p className="mt-8 text-sm text-slate-500 flex items-center gap-1 z-10">
-                Didukung oleh <span className="font-semibold text-slate-700">Onshape</span>
-            </p>
         </div>
     );
 }
