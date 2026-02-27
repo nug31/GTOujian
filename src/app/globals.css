@@ -45,6 +45,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Global Interaction Cursors */
+button,
+a,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="file"] {
+  cursor: pointer;
+}
+
+button:disabled,
+a:disabled {
+  cursor: not-allowed;
+}
+
 /* Glassmorphism Utilities */
 .glass {
   background: rgba(255, 255, 255, 0.7);
