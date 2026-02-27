@@ -129,15 +129,9 @@ export default function StudentDashboard() {
                                                 {exam.description || "Instruksi pengerjaan lebih detail akan ditampilkan setelah Anda memulai ujian."}
                                             </p>
 
-                                            <div className="grid grid-cols-2 gap-4 text-xs font-bold mt-auto pt-4 border-t border-slate-100">
-                                                <div className="flex items-center text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                                    <Clock className="w-4 h-4 mr-2 text-blue-500" />
-                                                    <span>{exam.duration}</span>
-                                                </div>
-                                                <div className="flex items-center text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                                    <FileText className="w-4 h-4 mr-2 text-indigo-500" />
-                                                    <span className="truncate">Due: {exam.dueDate.split(',')[0]}</span>
-                                                </div>
+                                            <div className="flex items-center text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 col-span-2 justify-center">
+                                                <Clock className="w-4 h-4 mr-2 text-blue-500" />
+                                                <span>Waktu Pengerjaan: {exam.duration}</span>
                                             </div>
                                         </div>
 

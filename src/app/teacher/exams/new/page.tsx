@@ -13,7 +13,6 @@ export default function NewExamPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [duration, setDuration] = useState("120");
-    const [dueDate, setDueDate] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
@@ -69,7 +68,6 @@ export default function NewExamPage() {
             description,
             duration: `${duration} Menit`,
             status: 'Aktif',
-            dueDate: dueDate.replace('T', ', '),
             imageUrl: finalImageUrl
         });
 
@@ -130,21 +128,12 @@ export default function NewExamPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-2 border-b border-slate-100">
-                                <div className="group">
-                                    <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Durasi Hitung Mundur (Menit) <span className="text-red-500">*</span></label>
-                                    <input
-                                        required type="number" min="10" value={duration} onChange={(e) => setDuration(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm"
-                                    />
-                                </div>
-                                <div className="group">
-                                    <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Batas Akses Terakhir (Tenggat) <span className="text-red-500">*</span></label>
-                                    <input
-                                        required type="datetime-local" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm"
-                                    />
-                                </div>
+                            <div className="group">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Durasi Hitung Mundur (Menit) <span className="text-red-500">*</span></label>
+                                <input
+                                    required type="number" min="10" value={duration} onChange={(e) => setDuration(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm"
+                                />
                             </div>
 
                             <div className="pt-2">
@@ -224,6 +213,6 @@ export default function NewExamPage() {
                     </motion.div>
                 )}
             </main>
-        </div>
+        </div >
     );
 }

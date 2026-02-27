@@ -7,7 +7,7 @@ export interface Exam {
     description: string;
     duration: string;
     status: 'Aktif' | 'Selesai';
-    dueDate: string;
+    dueDate?: string;
     imageUrl?: string;
 }
 
@@ -110,7 +110,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 description: exam.description,
                 duration: exam.duration,
                 status: exam.status,
-                due_date: exam.dueDate,
+                due_date: exam.dueDate || null,
                 image_url: exam.imageUrl
             }]);
 
@@ -124,7 +124,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (updatedFields.description) mappedFields.description = updatedFields.description;
         if (updatedFields.duration) mappedFields.duration = updatedFields.duration;
         if (updatedFields.status) mappedFields.status = updatedFields.status;
-        if (updatedFields.dueDate) mappedFields.due_date = updatedFields.dueDate;
+        if (updatedFields.dueDate !== undefined) mappedFields.due_date = updatedFields.dueDate || null;
         if (updatedFields.imageUrl) mappedFields.image_url = updatedFields.imageUrl;
 
         const { error } = await supabase
