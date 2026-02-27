@@ -30,13 +30,34 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     const [onshapeLink, setOnshapeLink] = useState("");
     const [submitted, setSubmitted] = useState(false);
 
-    // Set duration from exam data
+    // Set duration and handle persistence
     useEffect(() => {
         if (exam) {
             const minutes = parseInt(exam.duration.split(' ')[0]) || 120;
-            setTimeLeft(minutes * 60);
+            const totalSeconds = minutes * 60;
+
+            const startTimeKey = `exam_start_${params.id}`;
+            const storedStartTime = localStorage.getItem(startTimeKey);
+
+            if (storedStartTime) {
+                const startTime = parseInt(storedStartTime);
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - startTime) / 1000);
+                const remaining = totalSeconds - elapsedSeconds;
+
+                if (remaining > 0) {
+                    setTimeLeft(remaining);
+                    setExamStarted(true);
+                } else {
+                    setTimeLeft(0);
+                    setExamStarted(true);
+                    // Optionally handle auto-submit here if time passed while away
+                }
+            } else {
+                setTimeLeft(totalSeconds);
+            }
         }
-    }, [exam]);
+    }, [exam, params.id]);
 
     // Timer — only runs after exam started
     useEffect(() => {
@@ -90,6 +111,11 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
 
     const handleStartExam = () => {
         if (!agreedToRules) return;
+
+        // Persist start time
+        const startTimeKey = `exam_start_${params.id}`;
+        localStorage.setItem(startTimeKey, Date.now().toString());
+
         setExamStarted(true);
     };
 
@@ -111,6 +137,9 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 score: null,
                 onshapeLink: onshapeLink
             });
+
+            // Cleanup persistence
+            localStorage.removeItem(`exam_start_${params.id}`);
         }
 
         setSubmitted(true);
