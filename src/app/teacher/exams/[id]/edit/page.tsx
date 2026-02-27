@@ -162,79 +162,78 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                     className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm"
                                 />
                             </div>
-                        </div>
 
-                        {/* Upload Gambar Blueprint */}
-                        <div className="pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Gambar Blueprint Soal <span className="text-slate-400 font-normal">(Opsional untuk MVP)</span></label>
+                            {/* Upload Gambar Blueprint */}
+                            <div className="pt-4 border-t border-slate-100">
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Gambar Blueprint Soal <span className="text-slate-400 font-normal">(Opsional untuk MVP)</span></label>
 
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleFileChange}
-                            />
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                />
 
-                            {(() => {
-                                const displayUrl = previewUrl || storedImageUrl;
-                                return displayUrl ? (
-                                    <div className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={displayUrl} alt="Preview" className="max-h-full object-contain" />
-                                        <button
-                                            type="button"
-                                            onClick={removePreview}
-                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-indigo-300 bg-indigo-50 hover:bg-slate-100 transition-colors rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group"
-                                    >
-                                        <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                            <ImageIcon className="w-6 h-6 text-indigo-500" />
+                                {(() => {
+                                    const displayUrl = previewUrl || storedImageUrl;
+                                    return displayUrl ? (
+                                        <div className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={displayUrl} alt="Preview" className="max-h-full object-contain" />
+                                            <button
+                                                type="button"
+                                                onClick={removePreview}
+                                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-700">Ganti file gambar blueprint</p>
-                                        <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                                    ) : (
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="border-2 border-dashed border-indigo-300 bg-indigo-50 hover:bg-slate-100 transition-colors rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group"
+                                        >
+                                            <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <ImageIcon className="w-6 h-6 text-indigo-500" />
+                                            </div>
+                                            <p className="text-sm font-medium text-slate-700">Ganti file gambar blueprint</p>
+                                            <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                                        </div>
+                                    );
+                                })()}
+
+                                {uploadError && (
+                                    <div className="mt-2 flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                        <p className="text-xs">{uploadError}</p>
                                     </div>
-                                );
-                            })()}
+                                )}
+                            </div>
 
-                            {uploadError && (
-                                <div className="mt-2 flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                    <p className="text-xs">{uploadError}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                            <button type="button" onClick={() => router.back()} disabled={isUploading} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 font-medium text-sm rounded-lg transition-colors">
-                                Batal
-                            </button>
-                            <button type="submit" disabled={isUploading} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center">
-                                {isUploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengunggah...</> : <><Save className="w-4 h-4 mr-2" /> Perbarui Soal</>}
-                            </button>
-                        </div>
-                    </form>
+                            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                                <button type="button" onClick={() => router.back()} disabled={isUploading} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 font-medium text-sm rounded-lg transition-colors">
+                                    Batal
+                                </button>
+                                <button type="submit" disabled={isUploading} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center">
+                                    {isUploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengunggah...</> : <><Save className="w-4 h-4 mr-2" /> Perbarui Soal</>}
+                                </button>
+                            </div>
+                        </form>
                     </motion.div>
-            ) : (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
-                    <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Soal Berhasil Diperbarui!</h2>
-                <p className="text-slate-500 mb-8 max-w-[300px] text-center">
-                    Perubahan pada bank soal telah berhasil disimpan.
-                </p>
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-300 border-t-indigo-600"></div>
-            </motion.div>
+                ) : (
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
+                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
+                            <CheckCircle2 className="w-8 h-8" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Soal Berhasil Diperbarui!</h2>
+                        <p className="text-slate-500 mb-8 max-w-[300px] text-center">
+                            Perubahan pada bank soal telah berhasil disimpan.
+                        </p>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-300 border-t-indigo-600"></div>
+                    </motion.div>
                 )}
-        </main>
+            </main>
         </div >
     );
 }
