@@ -12,6 +12,11 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     const { exams, addSubmission, fetchExams } = useAppStore();
     const exam = exams.find(e => e.id === params.id);
     const [userInfo, setUserInfo] = useState<{ name: string, nisn: string, class: string } | null>(null);
+    const [isAndroid, setIsAndroid] = useState(false);
+
+    useEffect(() => {
+        setIsAndroid(/Android/i.test(navigator.userAgent));
+    }, []);
 
     // Exam state
     const [examStarted, setExamStarted] = useState(false);
@@ -315,20 +320,20 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                         <Info className="w-4 h-4 mr-2" /> Langkah-langkah
                                     </h3>
                                     <ol className="list-decimal list-inside text-sm text-blue-700 space-y-2 ml-1">
-                                        <li>Buka tab baru dan login ke akun <strong>Onshape</strong> Anda.</li>
+                                        <li>Buka <strong>Aplikasi Onshape</strong> (disarankan) atau tab baru di browser.</li>
                                         <li>Selesaikan gambar 3D sesuai instruksi di samping.</li>
-                                        <li>Klik tombol biru <strong>&quot;Share&quot;</strong> di kanan atas Onshape.</li>
+                                        <li>Klik tombol <strong>&quot;Share&quot;</strong> di kanan atas Onshape.</li>
                                         <li>Pilih tab <strong>&quot;Link Sharing&quot;</strong> &amp; aktifkan.</li>
-                                        <li>Copy link dan paste ke kolom di bawah ini.</li>
+                                        <li>Salin link dan tempel ke kolom di bawah ini.</li>
                                     </ol>
                                     <div className="mt-4 flex">
                                         <a
-                                            href="https://cad.onshape.com"
+                                            href={isAndroid ? "intent://cad.onshape.com#Intent;scheme=https;package=com.onshape.app;end" : "https://cad.onshape.com"}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-xs bg-white text-blue-600 border border-blue-200 px-3 py-1.5 rounded-md font-medium hover:bg-blue-50 transition-colors flex items-center"
                                         >
-                                            Buka Onshape <ExternalLink className="ml-1.5 w-3 h-3" />
+                                            {isAndroid ? "Buka Aplikasi Onshape" : "Buka Onshape"} <ExternalLink className="ml-1.5 w-3 h-3" />
                                         </a>
                                     </div>
                                 </div>
