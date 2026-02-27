@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Triangle, User, Lock, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { Wrench, User, Lock, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
@@ -93,7 +93,7 @@ export default function LoginPage() {
 
                     <div className="relative z-10 flex flex-col items-center">
                         <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-5 shadow-inner ring-1 ring-white/30">
-                            <Triangle className="w-8 h-8 text-white fill-white/20" />
+                            <Wrench className="w-8 h-8 text-white" />
                         </div>
                         <h1 className="text-4xl font-extrabold tracking-tighter font-outfit">GTO</h1>
                         <p className="text-indigo-100 font-medium text-xs mt-2 tracking-widest uppercase">Gambar Teknik Otomotif</p>

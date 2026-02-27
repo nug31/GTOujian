@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Clock, Info, Link as LinkIcon, AlertCircle, CheckCircle2, Copy, ShieldAlert, BookOpen, ExternalLink, X } from "lucide-react";
+import { Wrench, Clock, Info, Link as LinkIcon, AlertCircle, CheckCircle2, Copy, ShieldAlert, BookOpen, ExternalLink, X } from "lucide-react";
 import { useAppStore } from "@/lib/dataStore";
 import { supabase } from "@/lib/supabase";
 
@@ -358,7 +358,10 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             {/* ===== EXAM HEADER ===== */}
             <header className="glass-dark border-b border-slate-800/50 text-white flex-shrink-0 z-10 sticky top-0">
                 <div className="px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-700 shadow-inner">
+                            <Wrench className="w-5 h-5 text-blue-400" />
+                        </div>
                         <span className="font-extrabold text-2xl tracking-tighter font-outfit bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">
                             GTO
                         </span>
