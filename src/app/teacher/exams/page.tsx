@@ -141,7 +141,6 @@ export default function TeacherExamsDashboard() {
 
                                         <div className="text-xs text-slate-600 space-y-2.5 font-medium border-t border-slate-100 pt-4 mt-auto">
                                             <div className="flex items-center"><span className="w-20 text-slate-400">Durasi:</span> <span className="font-bold text-slate-800">{exam.duration}</span></div>
-                                            <div className="flex items-center"><span className="w-20 text-slate-400">Tenggat Selesai:</span> <span className="font-bold text-slate-800">{exam.dueDate}</span></div>
                                             <div className="flex items-center"><span className="w-20 text-slate-400">Kode Hash:</span> <span className="font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase border border-slate-200">{exam.id.split('-')[0]}</span></div>
                                         </div>
                                     </div>
