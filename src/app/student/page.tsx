@@ -8,11 +8,12 @@ import { useAppStore } from "@/lib/dataStore";
 
 export default function StudentDashboard() {
     const router = useRouter();
-    const { exams, fetchExams, isLoading } = useAppStore();
+    const { exams, fetchExams, submissions, fetchSubmissions, isLoading } = useAppStore();
 
     useEffect(() => {
         fetchExams();
-    }, [fetchExams]);
+        fetchSubmissions();
+    }, [fetchExams, fetchSubmissions]);
 
     const [userInfo, setUserInfo] = useState<{ name: string, nisn: string, class: string } | null>(null);
 
@@ -25,10 +26,17 @@ export default function StudentDashboard() {
         }
     }, [router]);
 
+    // Check if user has submitted this exam
+    const hasSubmitted = (examId: string) => {
+        if (!userInfo) return false;
+        return submissions.some(sub => sub.examId === examId && sub.nis === userInfo.nisn);
+    };
+
     // Helper to find score if completed
     const getExamScore = (examId: string) => {
-        // In real app we would check submissions. For demo, we just check status.
-        return null;
+        if (!userInfo) return null;
+        const sub = submissions.find(sub => sub.examId === examId && sub.nis === userInfo.nisn);
+        return sub && sub.score !== null ? sub.score : 'Pending';
     };
 
     const handleLogout = () => {
@@ -78,67 +86,74 @@ export default function StudentDashboard() {
                             <p>Memuat daftar ujian...</p>
                         </div>
                     ) : (
-                        exams.map((exam, index) => (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                key={exam.id}
-                            >
-                                <div
-                                    className={`bg-white rounded-xl border ${exam.status === "Aktif"
-                                        ? "border-blue-200 shadow-sm hover:shadow-md hover:border-blue-300"
-                                        : "border-slate-200 opacity-80"
-                                        } transition-all overflow-hidden flex flex-col h-full`}
+                        exams.map((exam, index) => {
+                            const submitted = hasSubmitted(exam.id);
+                            const isActive = exam.status === "Aktif" && !submitted;
+
+                            return (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    key={exam.id}
                                 >
-                                    <div className="p-6 flex-grow">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <h2 className="text-lg font-bold text-slate-800 line-clamp-1">{exam.title}</h2>
-                                            {exam.status === "Selesai" ? (
-                                                <span className="flex items-center text-xs font-medium text-green-700 bg-green-100 px-2.5 py-1 rounded-full whitespace-nowrap">
-                                                    <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Selesai
-                                                </span>
+                                    <div
+                                        className={`bg-white rounded-xl border ${isActive
+                                            ? "border-blue-200 shadow-sm hover:shadow-md hover:border-blue-300"
+                                            : "border-slate-200 opacity-80"
+                                            } transition-all overflow-hidden flex flex-col h-full`}
+                                    >
+                                        <div className="p-6 flex-grow">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <h2 className="text-lg font-bold text-slate-800 line-clamp-1">{exam.title}</h2>
+                                                {submitted || exam.status === "Selesai" ? (
+                                                    <span className="flex items-center text-xs font-medium text-green-700 bg-green-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+                                                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Selesai
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center text-xs font-medium text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+                                                        Tersedia
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <p className="text-sm text-slate-600 mb-6 line-clamp-2">
+                                                {exam.description}
+                                            </p>
+
+                                            <div className="grid grid-cols-2 gap-4 text-sm mb-2">
+                                                <div className="flex items-center text-slate-500">
+                                                    <Clock className="w-4 h-4 mr-2" />
+                                                    <span>{exam.duration}</span>
+                                                </div>
+                                                <div className="flex items-center text-slate-500">
+                                                    <FileText className="w-4 h-4 mr-2" />
+                                                    <span>Batas: {exam.dueDate.split(',')[0]}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className={`p-4 border-t ${isActive ? "bg-slate-50 border-blue-100" : "bg-slate-50 border-slate-100"}`}>
+                                            {isActive ? (
+                                                <button
+                                                    onClick={() => router.push(`/student/exam/${exam.id}`)}
+                                                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-lg font-medium transition-colors"
+                                                >
+                                                    Mulai Mengerjakan <ChevronRight className="w-4 h-4" />
+                                                </button>
                                             ) : (
-                                                <span className="flex items-center text-xs font-medium text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full whitespace-nowrap">
-                                                    Tersedia
-                                                </span>
+                                                <div className="flex justify-between items-center w-full px-2 py-1">
+                                                    <span className="text-slate-500 font-medium text-sm">Nilai Akhir</span>
+                                                    <span className={`text-xl font-bold tracking-tight ${getExamScore(exam.id) === 'Pending' ? 'text-amber-500 text-lg' : 'text-slate-800'}`}>
+                                                        {getExamScore(exam.id) || '-'}
+                                                    </span>
+                                                </div>
                                             )}
                                         </div>
-
-                                        <p className="text-sm text-slate-600 mb-6 line-clamp-2">
-                                            {exam.description}
-                                        </p>
-
-                                        <div className="grid grid-cols-2 gap-4 text-sm mb-2">
-                                            <div className="flex items-center text-slate-500">
-                                                <Clock className="w-4 h-4 mr-2" />
-                                                <span>{exam.duration}</span>
-                                            </div>
-                                            <div className="flex items-center text-slate-500">
-                                                <FileText className="w-4 h-4 mr-2" />
-                                                <span>Batas: {exam.dueDate.split(',')[0]}</span>
-                                            </div>
-                                        </div>
                                     </div>
-
-                                    <div className={`p-4 border-t ${exam.status === "Aktif" ? "bg-slate-50 border-blue-100" : "bg-slate-50 border-slate-100"}`}>
-                                        {exam.status === "Aktif" ? (
-                                            <button
-                                                onClick={() => router.push(`/student/exam/${exam.id}`)}
-                                                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-lg font-medium transition-colors"
-                                            >
-                                                Mulai Mengerjakan <ChevronRight className="w-4 h-4" />
-                                            </button>
-                                        ) : (
-                                            <div className="flex justify-between items-center w-full px-2 py-1">
-                                                <span className="text-slate-500 font-medium text-sm">Nilai Akhir</span>
-                                                <span className="text-2xl font-bold tracking-tight text-slate-800">{getExamScore(exam.id) || '-'}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))
+                                </motion.div>
+                            );
+                        })
                     )}
                 </div>
             </main>
