@@ -359,8 +359,8 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             <header className="glass-dark border-b border-slate-800/50 text-white flex-shrink-0 z-10 sticky top-0">
                 <div className="px-4 sm:px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <span className="font-bold text-xl tracking-tight font-outfit bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">
-                            Ujian GTO
+                        <span className="font-extrabold text-2xl tracking-tighter font-outfit bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">
+                            GTO
                         </span>
                         <div className="h-5 w-px bg-slate-700" />
                         <span className="text-slate-400 text-xs font-mono tracking-wider hidden sm:inline-block">ID: {params.id.split('-')[0]}</span>

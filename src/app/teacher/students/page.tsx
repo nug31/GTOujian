@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Wrench,
+    Triangle,
     LogOut,
     Users,
     Upload,
@@ -156,10 +156,10 @@ export default function StudentManagementPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <Wrench className="w-5 h-5 text-white" />
+                            <Triangle className="w-5 h-5 text-white fill-white/20" />
                         </div>
                         <div>
-                            <span className="font-bold text-lg tracking-tight text-slate-900 font-outfit">Ujian GTO</span>
+                            <span className="font-bold text-xl tracking-tighter text-slate-900 font-outfit text-primary-600">GTO</span>
                             <span className="ml-2 bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Dashboard Guru</span>
                         </div>
                     </div>

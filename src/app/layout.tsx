@@ -13,8 +13,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Ujian Praktik GTO",
-  description: "Aplikasi Ujian Praktik Gambar Teknik Otomotif",
+  title: "GTO",
+  description: "Aplikasi Gambar Teknik Otomotif",
 };
 
 export default function RootLayout({

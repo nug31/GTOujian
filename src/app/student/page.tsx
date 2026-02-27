@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Wrench, Clock, FileText, CheckCircle2, ChevronRight, LogOut } from "lucide-react";
+import { Triangle, Clock, FileText, CheckCircle2, ChevronRight, LogOut } from "lucide-react";
 import { useAppStore } from "@/lib/dataStore";
 
 export default function StudentDashboard() {
@@ -50,10 +50,10 @@ export default function StudentDashboard() {
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                            <Wrench className="w-5 h-5 text-white" />
+                            <Triangle className="w-5 h-5 text-white fill-white/20" />
                         </div>
                         <div>
-                            <span className="font-bold text-lg tracking-tight text-slate-900 font-outfit">Ujian GTO</span>
+                            <span className="font-bold text-xl tracking-tighter text-slate-900 font-outfit">GTO</span>
                             <span className="ml-2 bg-blue-50 text-blue-700 border border-blue-200/60 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Portal Siswa</span>
                         </div>
                     </div>

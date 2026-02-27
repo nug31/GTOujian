@@ -218,7 +218,7 @@ export default function NewExamPage() {
                         </div>
                         <h2 className="text-3xl font-bold text-slate-900 mb-3 font-outfit tracking-tight">Sukses Disimpan!</h2>
                         <p className="text-slate-500 mb-10 max-w-sm text-center leading-relaxed font-medium">
-                            Paket konfigurasi soal baru ujian praktik telah diamankan dalam *database* bank soal Ujian GTO.
+                            Paket konfigurasi soal baru ujian praktik telah diamankan dalam *database* bank soal GTO.
                         </p>
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-200 border-t-indigo-600"></div>
                     </motion.div>
