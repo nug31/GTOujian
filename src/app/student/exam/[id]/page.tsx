@@ -42,8 +42,17 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     // Set duration and handle persistence
     useEffect(() => {
         if (exam) {
-            const minutes = parseInt(exam.duration.split(' ')[0]) || 120;
-            const totalSeconds = minutes * 60;
+            let totalSeconds = 7200; // Default 2 hours
+            const durationStr = exam.duration.toLowerCase();
+            const num = parseInt(durationStr.replace(/[^0-9]/g, '')) || 120; // Extract number
+
+            if (durationStr.includes('jam')) {
+                totalSeconds = num * 3600; // e.g. "2 Jam" -> 7200 sec
+            } else if (durationStr.includes('menit')) {
+                totalSeconds = num * 60; // e.g. "120 Menit" -> 7200 sec
+            } else {
+                totalSeconds = num * 60; // Fallback to minutes
+            }
 
             const startTimeKey = `exam_start_${params.id}`;
             const storedStartTime = localStorage.getItem(startTimeKey);
