@@ -359,16 +359,23 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                         </div>
                                     </div>
 
-                                    <div className="bg-amber-50 rounded-lg p-3 flex items-start mb-6 border border-amber-100">
+                                    <div className="bg-amber-50 rounded-lg p-3 flex items-start mb-4 border border-amber-100">
                                         <AlertCircle className="w-4 h-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
                                         <p className="text-xs text-amber-700">Pastikan link dapat diakses oleh siapa saja yang memiliki link (Link Sharing aktif). Jika guru tidak bisa membukanya, nilai bisa dikurangi.</p>
                                     </div>
 
+                                    {timeLeft <= 0 && (
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 rounded-lg p-3 flex items-start mb-4 border border-red-200">
+                                            <AlertCircle className="w-4 h-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
+                                            <p className="text-xs text-red-700 font-medium">Waktu ujian telah habis! Jawaban Anda akan ditandai terlambat dan dapat mengalami pengurangan nilai.</p>
+                                        </motion.div>
+                                    )}
+
                                     <button
                                         type="submit"
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
+                                        className={`w-full text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 ${timeLeft <= 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                                     >
-                                        Kumpulkan Jawaban
+                                        {timeLeft <= 0 ? "Tetap Kumpulkan (Terlambat)" : "Kumpulkan Jawaban"}
                                     </button>
                                 </form>
                             </motion.div>
