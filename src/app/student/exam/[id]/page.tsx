@@ -151,7 +151,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     if (!exam) return <div className="p-10 text-center">Soal tidak ditemukan.</div>;
 
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col h-screen max-h-screen overflow-hidden">
+        <div className="min-h-screen bg-slate-100 flex flex-col lg:h-screen lg:max-h-screen lg:overflow-hidden">
 
             {/* ===== PRE-EXAM RULES OVERLAY ===== */}
             <AnimatePresence>
@@ -167,7 +167,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.3 }}
-                            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden"
+                            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto hidden-scrollbar"
                         >
                             {/* Header */}
                             <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5">
@@ -266,9 +266,9 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             </header>
 
             {/* ===== MAIN SPLIT VIEW ===== */}
-            <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
                 {/* Left pane: Blueprint */}
-                <div className="flex-1 bg-slate-800 flex flex-col p-4 border-r border-slate-700 overflow-y-auto">
+                <div className="flex-1 bg-slate-800 flex flex-col p-4 border-b lg:border-b-0 lg:border-r border-slate-700 overflow-y-auto min-h-[500px] lg:min-h-0">
                     <div className="bg-slate-900 rounded-xl p-4 mb-4 border border-slate-700 flex-shrink-0">
                         <h1 className="text-xl font-bold text-white mb-2">{exam.title}</h1>
                         <p className="text-slate-400 text-sm">
