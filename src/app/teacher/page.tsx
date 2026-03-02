@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Wrench, CheckCircle2, ChevronRight, LogOut, FileText, Search, Clock, AlertCircle, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useAppStore } from "@/lib/dataStore";
+import * as XLSX from "xlsx";
+import { useAppStore, Submission } from "@/lib/dataStore";
 
 // Mock data submissions
 export default function TeacherDashboard() {
@@ -48,6 +49,38 @@ export default function TeacherDashboard() {
         } catch (e) {
             return dateStr;
         }
+    };
+
+    const exportToExcel = () => {
+        const dataToExport = filteredSubmissions.map((sub) => ({
+            "Nama Siswa": sub.studentName,
+            "NIS": sub.nis,
+            "Judul Ujian": sub.examTitle,
+            "Waktu Kumpul": formatDateTime(sub.submitTime),
+            "Status": sub.status === "graded" ? "Sudah Dinilai" : "Menunggu Penilaian",
+            "Nilai": sub.score ?? "-",
+            "Link Onshape": sub.onshapeLink,
+            "Keterangan": sub.isLate ? "Terlambat" : "Tepat Waktu"
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Penilaian");
+
+        // Set column widths
+        const wscols = [
+            { wch: 25 }, // Nama Siswa
+            { wch: 15 }, // NIS
+            { wch: 30 }, // Judul Ujian
+            { wch: 20 }, // Waktu Kumpul
+            { wch: 20 }, // Status
+            { wch: 10 }, // Nilai
+            { wch: 40 }, // Link Onshape
+            { wch: 15 }  // Keterangan
+        ];
+        worksheet["!cols"] = wscols;
+
+        XLSX.writeFile(workbook, `Data_Penilaian_GTO_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
     return (
@@ -152,17 +185,26 @@ export default function TeacherDashboard() {
                         </button>
                     </div>
 
-                    <div className="relative w-full sm:w-80 group pr-2 hidden sm:block">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <div className="flex items-center gap-3 pr-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:w-80 group hidden sm:block">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Cari nama atau NIS siswa..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 group-focus-within:bg-white rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm text-slate-800 placeholder-slate-400 transition-all outline-none shadow-inner group-focus-within:shadow-none"
+                            />
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Cari nama atau NIS siswa..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 group-focus-within:bg-white rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm text-slate-800 placeholder-slate-400 transition-all outline-none shadow-inner group-focus-within:shadow-none"
-                        />
+                        <button
+                            onClick={exportToExcel}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap"
+                        >
+                            <FileText className="w-4 h-4" />
+                            Ekspor Excel
+                        </button>
                     </div>
                 </div>
 
