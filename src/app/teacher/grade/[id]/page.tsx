@@ -270,7 +270,7 @@ export default function GradePage({ params: paramsPromise }: { params: Promise<{
                                 </div>
                                 <h2 className="text-2xl font-bold text-slate-900 mb-2">Nilai Tersimpan!</h2>
                                 <p className="text-slate-500 mb-8 max-w-[250px]">
-                                    Nilai akhir {totalScore} telah dikirim ke daftar nilai Budi Santoso.
+                                    Nilai akhir {totalScore} telah dikirim ke daftar nilai {submission.studentName}.
                                 </p>
                                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-300 border-t-indigo-600"></div>
                             </motion.div>
