@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
+import PageTransition from "@/components/PageTransition";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,9 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${outfit.variable} font-sans antialiased selection:bg-indigo-500/30 selection:text-indigo-900`}
+        className={`${inter.variable} ${outfit.variable} font-sans antialiased selection:bg-indigo-500/30 selection:text-indigo-900 bg-slate-950 text-slate-200 transition-colors duration-300`}
       >
-        {children}
+        <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(30,41,59,0.3),transparent)] pointer-events-none z-[-1]" />
+        <PageTransition>
+          {children}
+        </PageTransition>
       </body>
     </html>
   );

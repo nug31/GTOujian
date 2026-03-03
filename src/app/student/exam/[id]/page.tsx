@@ -38,6 +38,9 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     const [timeLeft, setTimeLeft] = useState(7200);
     const [onshapeLink, setOnshapeLink] = useState("");
     const [submitted, setSubmitted] = useState(false);
+    const [tabSwitches, setTabSwitches] = useState(0);
+    const [showTabWarning, setShowTabWarning] = useState(false);
+    const [countdownMessage, setCountdownMessage] = useState<string | null>(null);
 
     // Set duration and handle persistence
     useEffect(() => {
@@ -144,6 +147,22 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         };
     }, [examStarted, submitted, userInfo?.nisn, exam?.id]);
 
+    // Proctoring: Detect tab switching
+    useEffect(() => {
+        if (!examStarted || submitted) return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setTabSwitches(prev => prev + 1);
+            } else {
+                setShowTabWarning(true);
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [examStarted, submitted]);
+
     // Disable right-click and common cheat shortcuts on exam page
     useEffect(() => {
         if (!examStarted || submitted) return;
@@ -164,6 +183,49 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [examStarted, submitted]);
+
+    // Countdown Audio & Visual Alerts
+    useEffect(() => {
+        if (!examStarted || submitted) return;
+
+        const playPing = () => {
+            try {
+                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.warn("Audio Context blocked or not supported", e);
+            }
+        };
+
+        // 10 Minutes (600s)
+        if (timeLeft === 600) {
+            setCountdownMessage("Waktu Tersisa 10 Menit! Segera Selesaikan Pekerjaan Anda.");
+            playPing();
+            setTimeout(() => setCountdownMessage(null), 5000);
+        }
+        // 5 Minutes (300s)
+        if (timeLeft === 300) {
+            setCountdownMessage("Waktu Tersisa 5 Menit! Segera Linkkan Onshape Anda!");
+            playPing();
+            setTimeout(() => setCountdownMessage(null), 5000);
+        }
+        // 1 Minute (60s)
+        if (timeLeft === 60) {
+            playPing();
+        }
+    }, [timeLeft, examStarted, submitted]);
 
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600);
@@ -201,7 +263,8 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 status: 'pending',
                 score: null,
                 onshapeLink: onshapeLink,
-                isLate: timeLeft <= 0
+                isLate: timeLeft <= 0,
+                tabSwitches: tabSwitches
             });
 
             // Cleanup persistence
@@ -223,6 +286,65 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl animate-pulse-slow" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-blue-600/5 rounded-full blur-3xl" />
             </div>
+
+            {/* ===== TAB SWITCH WARNING OVERLAY ===== */}
+            <AnimatePresence>
+                {showTabWarning && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[65] bg-amber-950/80 backdrop-blur-md flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border-2 border-amber-500"
+                        >
+                            <div className="bg-amber-600 px-6 py-4 flex items-center gap-3">
+                                <ShieldAlert className="w-8 h-8 text-white" />
+                                <h2 className="text-xl font-bold text-white tracking-wide">Peringatan Sistem</h2>
+                            </div>
+                            <div className="p-6 text-center">
+                                <p className="text-slate-300 text-lg font-medium leading-relaxed mb-4">
+                                    Terdeteksi aktivitas di luar halaman ujian.
+                                </p>
+                                <p className="text-amber-400 text-sm font-bold mb-8 uppercase tracking-widest">
+                                    Pelanggaran Ke-{tabSwitches} Teratat
+                                </p>
+                                <button
+                                    onClick={() => setShowTabWarning(false)}
+                                    className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-amber-900/40"
+                                >
+                                    Saya Mengerti & Kembali Bekerja
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ===== COUNTDOWN ALERT OVERLAY ===== */}
+            <AnimatePresence>
+                {countdownMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="fixed top-20 left-1/2 -translate-x-1/2 z-[70] pointer-events-none w-full max-w-lg px-4"
+                    >
+                        <div className="bg-amber-500/90 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.4)] border border-amber-400 flex items-center gap-4">
+                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                                <Clock className="w-6 h-6 text-white" />
+                            </div>
+                            <p className="font-bold text-lg tracking-tight leading-snug">
+                                {countdownMessage}
+                            </p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* ===== LIVE WARNING OVERLAY ===== */}
             <AnimatePresence>

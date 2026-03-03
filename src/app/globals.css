@@ -35,6 +35,22 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --accent: #f59e0b;
+  --card: #ffffff;
+  --border: #e2e8f0;
+}
+
+[data-theme='dark'],
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --accent: #fbbf24;
+  --card: #0f172a;
+  --border: #1e293b;
 }
 
 body {
@@ -43,21 +59,24 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Global Interaction Cursors */
-button,
-a,
-[role="button"],
-input[type="submit"],
-input[type="button"],
-input[type="file"] {
-  cursor: pointer;
+/* Premium Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-button:disabled,
-a:disabled {
-  cursor: not-allowed;
+.animate-in {
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 /* Glassmorphism Utilities */
@@ -73,6 +92,28 @@ a:disabled {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Skeleton Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+      rgba(30, 41, 59, 0) 0%,
+      rgba(30, 41, 59, 0.5) 50%,
+      rgba(30, 41, 59, 0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+  background-color: #1e293b;
 }
 
 /* Utility to hide scrollbar but keep functionality */

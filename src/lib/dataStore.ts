@@ -22,6 +22,7 @@ export interface Submission {
     score: number | null;
     onshapeLink: string;
     isLate?: boolean;
+    tabSwitches?: number;
     criteria?: {
         dimension: number;
         efficiency: number;
@@ -94,6 +95,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 score: item.score,
                 onshapeLink: item.onshape_link,
                 isLate: item.is_late,
+                tabSwitches: item.tab_switches,
                 criteria: item.criteria,
                 feedback: item.feedback
             }));
@@ -158,6 +160,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 score: submission.score,
                 onshape_link: submission.onshapeLink,
                 is_late: submission.isLate || false,
+                tab_switches: submission.tabSwitches || 0,
                 criteria: submission.criteria,
                 feedback: submission.feedback
             }]);
@@ -172,6 +175,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (updatedFields.score !== undefined) mappedFields.score = updatedFields.score;
         if (updatedFields.onshapeLink) mappedFields.onshape_link = updatedFields.onshapeLink;
         if (updatedFields.isLate !== undefined) mappedFields.is_late = updatedFields.isLate;
+        if (updatedFields.tabSwitches !== undefined) mappedFields.tab_switches = updatedFields.tabSwitches;
         if (updatedFields.criteria) mappedFields.criteria = updatedFields.criteria;
         if (updatedFields.feedback) mappedFields.feedback = updatedFields.feedback;
 
