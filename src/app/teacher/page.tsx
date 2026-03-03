@@ -12,6 +12,7 @@ import { useAppStore, Submission } from "@/lib/dataStore";
 export default function TeacherDashboard() {
     const router = useRouter();
     const [filter, setFilter] = useState<"all" | "pending" | "graded">("all");
+    const [classFilter, setClassFilter] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [teacherName, setTeacherName] = useState("Bpk. Ahmad Riyadi, S.T.");
     const { submissions, fetchSubmissions, deleteSubmission, isLoading } = useAppStore();
@@ -31,10 +32,13 @@ export default function TeacherDashboard() {
 
     const filteredSubmissions = submissions.filter((sub) => {
         const matchesFilter = filter === "all" || sub.status === filter;
+        const matchesClass = classFilter === "all" || sub.studentClass === classFilter;
         const matchesSearch = sub.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             sub.nis.includes(searchQuery);
-        return matchesFilter && matchesSearch;
+        return matchesFilter && matchesClass && matchesSearch;
     });
+
+    const uniqueClasses = Array.from(new Set(submissions.map(s => s.studentClass).filter(Boolean))) as string[];
 
     const formatDateTime = (dateStr: string) => {
         try {
@@ -185,8 +189,18 @@ export default function TeacherDashboard() {
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-3 pr-2 w-full sm:w-auto">
-                        <div className="relative flex-1 sm:w-80 group hidden sm:block">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 pr-2 w-full sm:w-auto">
+                        <select
+                            value={classFilter}
+                            onChange={(e) => setClassFilter(e.target.value)}
+                            className="w-full sm:w-40 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        >
+                            <option value="all">Semua Kelas</option>
+                            {uniqueClasses.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                        <div className="relative flex-1 sm:w-64 group hidden sm:block">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                             </div>
@@ -254,7 +268,14 @@ export default function TeacherDashboard() {
                                                 </div>
                                                 <div className="ml-4">
                                                     <div className="text-sm font-bold text-slate-900">{sub.studentName}</div>
-                                                    <div className="text-xs text-slate-500 mt-0.5 font-mono">{sub.nis}</div>
+                                                    <div className="text-xs text-slate-500 mt-0.5 font-mono flex items-center gap-2">
+                                                        {sub.nis}
+                                                        {sub.studentClass && (
+                                                            <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-indigo-100">
+                                                                {sub.studentClass}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>

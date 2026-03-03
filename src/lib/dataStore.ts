@@ -23,6 +23,7 @@ export interface Submission {
     onshapeLink: string;
     isLate?: boolean;
     tabSwitches?: number;
+    studentClass?: string;
     criteria?: {
         dimension: number;
         efficiency: number;
@@ -96,6 +97,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 onshapeLink: item.onshape_link,
                 isLate: item.is_late,
                 tabSwitches: item.tab_switches,
+                studentClass: item.student_class,
                 criteria: item.criteria,
                 feedback: item.feedback
             }));
@@ -161,6 +163,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 onshape_link: submission.onshapeLink,
                 is_late: submission.isLate || false,
                 tab_switches: submission.tabSwitches || 0,
+                student_class: submission.studentClass,
                 criteria: submission.criteria,
                 feedback: submission.feedback
             }]);

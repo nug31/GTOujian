@@ -273,7 +273,8 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 score: null,
                 onshapeLink: onshapeLink,
                 isLate: timeLeft <= 0,
-                tabSwitches: tabSwitches
+                tabSwitches: tabSwitches,
+                studentClass: userInfo?.class
             });
 
             // Cleanup persistence

@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS submissions (
     onshape_link TEXT NOT NULL,
     is_late BOOLEAN DEFAULT FALSE,
     tab_switches INTEGER DEFAULT 0,
+    student_class TEXT,
     criteria JSONB,
     feedback TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
