@@ -41,7 +41,7 @@ interface AppState {
     addExam: (exam: Omit<Exam, 'id'>) => Promise<void>;
     updateExam: (id: string, exam: Partial<Exam>) => Promise<void>;
     deleteExam: (id: string) => Promise<void>;
-    addSubmission: (submission: Omit<Submission, 'id'>) => Promise<boolean>;
+    addSubmission: (submission: Omit<Submission, 'id'>) => Promise<{ success: boolean; error?: string }>;
     updateSubmission: (id: string, submission: Partial<Submission>) => Promise<void>;
     deleteSubmission: (id: string) => Promise<void>;
     fetchAvailableClasses: () => Promise<{ data: string[] | null, error: any }>;
@@ -180,11 +180,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         if (error) {
             console.error('Error adding submission:', error);
-            return false;
+            return { success: false, error: error.message };
         } else {
             console.log('Submission added successfully');
             await get().fetchSubmissions();
-            return true;
+            return { success: true };
         }
     },
 

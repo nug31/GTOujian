@@ -271,7 +271,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         setSubmitError(null);
 
         if (exam && userInfo) {
-            const success = await addSubmission({
+            const result = await addSubmission({
                 studentName: userInfo.name,
                 nis: userInfo.nisn.trim(),
                 examId: exam.id,
@@ -285,7 +285,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 studentClass: userInfo?.class
             });
 
-            if (success) {
+            if (result.success) {
                 setSubmitSuccess(true);
                 // Cleanup persistence
                 localStorage.removeItem(`exam_start_${params.id}`);
@@ -298,7 +298,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                     router.push("/student");
                 }, 3000);
             } else {
-                setSubmitError("Gagal mengirim jawaban. Silakan coba lagi atau hubungi guru.");
+                setSubmitError(`Gagal mengirim: ${result.error || "Kesalahan tidak diketahui"}.`);
                 setIsSubmitting(false);
             }
         } else {
