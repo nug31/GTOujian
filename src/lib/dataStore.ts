@@ -41,7 +41,7 @@ interface AppState {
     addExam: (exam: Omit<Exam, 'id'>) => Promise<void>;
     updateExam: (id: string, exam: Partial<Exam>) => Promise<void>;
     deleteExam: (id: string) => Promise<void>;
-    addSubmission: (submission: Omit<Submission, 'id'>) => Promise<void>;
+    addSubmission: (submission: Omit<Submission, 'id'>) => Promise<boolean>;
     updateSubmission: (id: string, submission: Partial<Submission>) => Promise<void>;
     deleteSubmission: (id: string) => Promise<void>;
     fetchAvailableClasses: () => Promise<{ data: string[] | null, error: any }>;
@@ -158,11 +158,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     addSubmission: async (submission) => {
+        const trimmedNis = submission.nis.trim();
+        console.log(`Attempting to add submission for NIS: ${trimmedNis}, Exam: ${submission.examId}`);
+
         const { error } = await supabase
             .from('submissions')
             .insert([{
                 student_name: submission.studentName,
-                nis: submission.nis,
+                nis: trimmedNis,
                 exam_id: submission.examId,
                 exam_title: submission.examTitle,
                 status: submission.status,
@@ -175,8 +178,14 @@ export const useAppStore = create<AppState>((set, get) => ({
                 feedback: submission.feedback
             }]);
 
-        if (error) console.error('Error adding submission:', error);
-        else await get().fetchSubmissions();
+        if (error) {
+            console.error('Error adding submission:', error);
+            return false;
+        } else {
+            console.log('Submission added successfully');
+            await get().fetchSubmissions();
+            return true;
+        }
     },
 
     updateSubmission: async (id, updatedFields) => {

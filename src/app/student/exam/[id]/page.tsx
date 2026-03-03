@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 export default function ExamPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
     const params = use(paramsPromise);
     const router = useRouter();
-    const { exams, addSubmission, fetchExams } = useAppStore();
+    const { exams, addSubmission, fetchExams, fetchSubmissions } = useAppStore();
     const exam = exams.find(e => e.id === params.id);
     const [userInfo, setUserInfo] = useState<{ name: string, nisn: string, class: string } | null>(null);
     const [isAndroid, setIsAndroid] = useState(false);
@@ -42,6 +42,9 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     const [showTabWarning, setShowTabWarning] = useState(false);
     const [countdownMessage, setCountdownMessage] = useState<string | null>(null);
     const [lastHiddenTime, setLastHiddenTime] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
 
     // Set duration and handle persistence
     useEffect(() => {
@@ -257,13 +260,18 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting || submitted) return;
+
         if (!onshapeLink.includes("onshape.com")) {
             alert("Masukkan link dokumen Onshape yang valid.");
             return;
         }
 
+        setIsSubmitting(true);
+        setSubmitError(null);
+
         if (exam && userInfo) {
-            await addSubmission({
+            const success = await addSubmission({
                 studentName: userInfo.name,
                 nis: userInfo.nisn.trim(),
                 examId: exam.id,
@@ -277,14 +285,26 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 studentClass: userInfo?.class
             });
 
-            // Cleanup persistence
-            localStorage.removeItem(`exam_start_${params.id}`);
-        }
+            if (success) {
+                setSubmitSuccess(true);
+                // Cleanup persistence
+                localStorage.removeItem(`exam_start_${params.id}`);
 
-        setSubmitted(true);
-        setTimeout(() => {
-            router.push("/student");
-        }, 3000);
+                // Force fetch specifically before redirect
+                await fetchSubmissions();
+
+                setSubmitted(true);
+                setTimeout(() => {
+                    router.push("/student");
+                }, 3000);
+            } else {
+                setSubmitError("Gagal mengirim jawaban. Silakan coba lagi atau hubungi guru.");
+                setIsSubmitting(false);
+            }
+        } else {
+            setSubmitError("Data tidak lengkap. Gagal mengirim.");
+            setIsSubmitting(false);
+        }
     };
 
     if (!exam) return <div className="p-10 text-center">Soal tidak ditemukan.</div>;
@@ -613,12 +633,41 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                         </motion.div>
                                     )}
 
-                                    <button
-                                        type="submit"
-                                        className={`w-full text-white font-bold tracking-wide uppercase text-sm py-4 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 font-outfit ${timeLeft <= 0 ? 'bg-red-600 hover:bg-red-500 shadow-red-900/50' : 'bg-blue-600 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-500'}`}
-                                    >
-                                        {timeLeft <= 0 ? "Bypass & Kumpulkan Paksa" : "Kirim Jawaban Ke Server"}
-                                    </button>
+                                    <div className="space-y-4">
+                                        {submitError && (
+                                            <div className="p-3 bg-red-950/40 border border-red-500/50 rounded-lg text-red-200 text-xs flex items-center gap-2">
+                                                <AlertCircle className="w-4 h-4 text-red-500" /> {submitError}
+                                            </div>
+                                        )}
+                                        {submitSuccess && (
+                                            <div className="p-3 bg-emerald-950/40 border border-emerald-500/50 rounded-lg text-emerald-200 text-xs flex items-center gap-2">
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Berhasil Dikirim! Mengalihkan...
+                                            </div>
+                                        )}
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting || submitted}
+                                            className={`w-full font-bold tracking-wide uppercase text-sm py-4 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 font-outfit ${isSubmitting || submitted
+                                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                                                : timeLeft <= 0
+                                                    ? 'bg-red-600 hover:bg-red-500 shadow-red-900/50 text-white'
+                                                    : 'bg-blue-600 hover:bg-blue-500 text-white hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-500'
+                                                }`}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    MENGIRIM...
+                                                </>
+                                            ) : submitted ? (
+                                                <>
+                                                    <CheckCircle2 className="w-5 h-5" /> TERKIRIM
+                                                </>
+                                            ) : (
+                                                timeLeft <= 0 ? "Bypass & Kumpulkan Paksa" : "Kirim Jawaban Ke Server"
+                                            )}
+                                        </button>
+                                    </div>
                                 </form>
                             </motion.div>
                         ) : (

@@ -43,15 +43,25 @@ export default function StudentDashboard() {
     // Check if user has submitted this exam
     const hasSubmitted = (examId: string) => {
         if (!userInfo) return false;
-        const normalizedNisn = userInfo.nisn.trim();
-        return submissions.some(sub => sub.examId === examId && sub.nis.trim() === normalizedNisn);
+        const normalizedUserNisn = userInfo.nisn.trim().toLowerCase();
+
+        // Debugging log to help find why "Soal Latihan" might fail
+        const isMatch = submissions.some(sub => {
+            const subExamMatch = sub.examId === examId;
+            const subNisMatch = sub.nis.trim().toLowerCase() === normalizedUserNisn;
+            return subExamMatch && subNisMatch;
+        });
+
+        return isMatch;
     };
 
     // Helper to find score if completed
     const getExamScore = (examId: string) => {
         if (!userInfo) return null;
-        const normalizedNisn = userInfo.nisn.trim();
-        const sub = submissions.find(sub => sub.examId === examId && sub.nis.trim() === normalizedNisn);
+        const normalizedUserNisn = userInfo.nisn.trim().toLowerCase();
+        const sub = submissions.find(sub =>
+            sub.examId === examId && sub.nis.trim().toLowerCase() === normalizedUserNisn
+        );
         return sub && sub.score !== null ? sub.score : 'Pending';
     };
 
