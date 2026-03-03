@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Wrench, LogOut, FileText, Search, Plus, Edit2, Trash2, Link as LinkIcon, CheckCircle2 } from "lucide-react";
+import { Wrench, LogOut, FileText, Search, Plus, Edit2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useAppStore } from "@/lib/dataStore";
 
@@ -11,7 +11,6 @@ export default function TeacherExamsDashboard() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [teacherName, setTeacherName] = useState("Guru GTO");
-    const [copiedId, setCopiedId] = useState<string | null>(null);
     const { exams, deleteExam, fetchExams, isLoading } = useAppStore();
 
     useEffect(() => {
@@ -31,14 +30,6 @@ export default function TeacherExamsDashboard() {
 
     const handleLogout = () => {
         router.push("/login");
-    };
-
-    const copyExamLink = (id: string) => {
-        const baseUrl = window.location.origin;
-        const link = `${baseUrl}/student/exam/${id}`;
-        navigator.clipboard.writeText(link);
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 2000);
     };
 
     const filteredExams = exams.filter((exam) => {
@@ -150,19 +141,7 @@ export default function TeacherExamsDashboard() {
 
                                         <div className="text-xs text-slate-600 space-y-2.5 font-medium border-t border-slate-100 pt-4 mt-auto">
                                             <div className="flex items-center"><span className="w-20 text-slate-400">Durasi:</span> <span className="font-bold text-slate-800">{exam.duration}</span></div>
-                                            <div className="flex items-center justify-between mt-2.5 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] text-slate-400 uppercase tracking-widest">Link Akses Siswa</span>
-                                                    <span className="font-mono text-[10px] text-slate-500 truncate w-32">{exam.id.split('-')[0]}...</span>
-                                                </div>
-                                                <button
-                                                    onClick={() => copyExamLink(exam.id)}
-                                                    className={`p-2 rounded-lg transition-all ${copiedId === exam.id ? 'bg-emerald-50 text-emerald-600' : 'bg-white text-slate-400 hover:text-indigo-600 border border-slate-200 shadow-sm'}`}
-                                                    title="Salin Link Pengerjaan"
-                                                >
-                                                    {copiedId === exam.id ? <CheckCircle2 className="w-4 h-4" /> : <LinkIcon className="w-4 h-4" />}
-                                                </button>
-                                            </div>
+                                            <div className="flex items-center"><span className="w-20 text-slate-400">Kode Hash:</span> <span className="font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase border border-slate-200">{exam.id.split('-')[0]}</span></div>
                                         </div>
                                     </div>
                                     <div className="border-t border-slate-100 bg-slate-50/50 p-4 flex gap-2.5 items-center justify-between">

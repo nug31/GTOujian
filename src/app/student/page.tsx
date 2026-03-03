@@ -13,6 +13,20 @@ export default function StudentDashboard() {
     useEffect(() => {
         fetchExams();
         fetchSubmissions();
+
+        // Subscribe to real-time changes
+        const unsubscribe = useAppStore.getState().subscribeSubmissions();
+
+        // Auto refresh when window is focused
+        const onFocus = () => {
+            fetchExams();
+            fetchSubmissions();
+        };
+        window.addEventListener("focus", onFocus);
+        return () => {
+            unsubscribe();
+            window.removeEventListener("focus", onFocus);
+        };
     }, [fetchExams, fetchSubmissions]);
 
     const [userInfo, setUserInfo] = useState<{ name: string, nisn: string, class: string } | null>(null);
@@ -29,13 +43,15 @@ export default function StudentDashboard() {
     // Check if user has submitted this exam
     const hasSubmitted = (examId: string) => {
         if (!userInfo) return false;
-        return submissions.some(sub => sub.examId === examId && sub.nis === userInfo.nisn);
+        const normalizedNisn = userInfo.nisn.trim();
+        return submissions.some(sub => sub.examId === examId && sub.nis.trim() === normalizedNisn);
     };
 
     // Helper to find score if completed
     const getExamScore = (examId: string) => {
         if (!userInfo) return null;
-        const sub = submissions.find(sub => sub.examId === examId && sub.nis === userInfo.nisn);
+        const normalizedNisn = userInfo.nisn.trim();
+        const sub = submissions.find(sub => sub.examId === examId && sub.nis.trim() === normalizedNisn);
         return sub && sub.score !== null ? sub.score : 'Pending';
     };
 

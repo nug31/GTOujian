@@ -265,7 +265,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         if (exam && userInfo) {
             await addSubmission({
                 studentName: userInfo.name,
-                nis: userInfo.nisn,
+                nis: userInfo.nisn.trim(),
                 examId: exam.id,
                 examTitle: exam.title,
                 submitTime: new Date().toLocaleString(),

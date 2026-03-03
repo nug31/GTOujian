@@ -26,6 +26,10 @@ export default function TeacherDashboard() {
         }
         fetchSubmissions();
         fetchClasses();
+
+        // Subscribe to real-time changes
+        const unsubscribe = useAppStore.getState().subscribeSubmissions();
+        return () => unsubscribe();
     }, [fetchSubmissions]);
 
     const fetchClasses = async () => {

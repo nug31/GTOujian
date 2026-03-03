@@ -45,6 +45,7 @@ interface AppState {
     updateSubmission: (id: string, submission: Partial<Submission>) => Promise<void>;
     deleteSubmission: (id: string) => Promise<void>;
     fetchAvailableClasses: () => Promise<{ data: string[] | null, error: any }>;
+    subscribeSubmissions: () => () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -217,5 +218,22 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         const uniqueClasses = Array.from(new Set(data.map(s => s.class))).sort();
         return { data: uniqueClasses, error: null };
+    },
+
+    subscribeSubmissions: () => {
+        const channel = supabase
+            .channel('submissions-changes')
+            .on(
+                'postgres_changes',
+                { event: '*', table: 'submissions', schema: 'public' },
+                () => {
+                    get().fetchSubmissions();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }
 }));
