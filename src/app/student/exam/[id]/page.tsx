@@ -41,6 +41,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     const [tabSwitches, setTabSwitches] = useState(0);
     const [showTabWarning, setShowTabWarning] = useState(false);
     const [countdownMessage, setCountdownMessage] = useState<string | null>(null);
+    const [lastHiddenTime, setLastHiddenTime] = useState<number | null>(null);
 
     // Set duration and handle persistence
     useEffect(() => {
@@ -147,21 +148,29 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         };
     }, [examStarted, submitted, userInfo?.nisn, exam?.id]);
 
-    // Proctoring: Detect tab switching
+    // Proctoring: Detect tab switching with tolerance
     useEffect(() => {
         if (!examStarted || submitted) return;
 
         const handleVisibilityChange = () => {
             if (document.hidden) {
-                setTabSwitches(prev => prev + 1);
+                setLastHiddenTime(Date.now());
             } else {
-                setShowTabWarning(true);
+                if (lastHiddenTime) {
+                    const durationHidden = (Date.now() - lastHiddenTime) / 1000;
+                    // Only count as violation if hidden for more than 5 seconds
+                    if (durationHidden > 5) {
+                        setTabSwitches(prev => prev + 1);
+                        setShowTabWarning(true);
+                    }
+                    setLastHiddenTime(null);
+                }
             }
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [examStarted, submitted]);
+    }, [examStarted, submitted, lastHiddenTime]);
 
     // Disable right-click and common cheat shortcuts on exam page
     useEffect(() => {
