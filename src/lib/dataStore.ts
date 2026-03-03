@@ -78,15 +78,20 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     fetchSubmissions: async () => {
         set({ isLoading: true });
-        const { data, error } = await supabase
+        const { data: subData, error: subError } = await supabase
             .from('submissions')
             .select('*')
             .order('submit_time', { ascending: false });
 
-        if (error) {
-            console.error('Error fetching submissions:', error);
+        const { data: stuData, error: stuError } = await supabase
+            .from('students')
+            .select('nisn, class');
+
+        if (subError || stuError) {
+            console.error('Error fetching data:', subError || stuError);
         } else {
-            const mappedSubmissions: Submission[] = (data || []).map(item => ({
+            const studentMap = new Map((stuData || []).map(s => [s.nisn, s.class]));
+            const mappedSubmissions: Submission[] = (subData || []).map(item => ({
                 id: item.id,
                 studentName: item.student_name,
                 nis: item.nis,
@@ -98,7 +103,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 onshapeLink: item.onshape_link,
                 isLate: item.is_late,
                 tabSwitches: item.tab_switches,
-                studentClass: item.student_class,
+                studentClass: studentMap.get(item.nis) || item.student_class,
                 criteria: item.criteria,
                 feedback: item.feedback
             }));
