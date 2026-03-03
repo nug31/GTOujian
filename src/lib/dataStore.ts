@@ -44,6 +44,7 @@ interface AppState {
     addSubmission: (submission: Omit<Submission, 'id'>) => Promise<void>;
     updateSubmission: (id: string, submission: Partial<Submission>) => Promise<void>;
     deleteSubmission: (id: string) => Promise<void>;
+    fetchAvailableClasses: () => Promise<{ data: string[] | null, error: any }>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -198,5 +199,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         if (error) console.error('Error deleting submission:', error);
         else await get().fetchSubmissions();
+    },
+    fetchAvailableClasses: async () => {
+        const { data, error } = await supabase
+            .from('students')
+            .select('class');
+
+        if (error) {
+            console.error('Error fetching classes:', error);
+            return { data: null, error };
+        }
+
+        const uniqueClasses = Array.from(new Set(data.map(s => s.class))).sort();
+        return { data: uniqueClasses, error: null };
     }
 }));

@@ -14,6 +14,7 @@ export default function TeacherDashboard() {
     const [filter, setFilter] = useState<"all" | "pending" | "graded">("all");
     const [classFilter, setClassFilter] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [teacherName, setTeacherName] = useState("Bpk. Ahmad Riyadi, S.T.");
     const { submissions, fetchSubmissions, deleteSubmission, isLoading } = useAppStore();
 
@@ -24,7 +25,15 @@ export default function TeacherDashboard() {
             if (parsed.role === "teacher") setTeacherName(parsed.name);
         }
         fetchSubmissions();
+        fetchClasses();
     }, [fetchSubmissions]);
+
+    const fetchClasses = async () => {
+        const { data, error } = await useAppStore.getState().fetchAvailableClasses();
+        if (!error && data) {
+            setAvailableClasses(data);
+        }
+    };
 
     const handleLogout = () => {
         router.push("/login");
@@ -37,8 +46,6 @@ export default function TeacherDashboard() {
             sub.nis.includes(searchQuery);
         return matchesFilter && matchesClass && matchesSearch;
     });
-
-    const uniqueClasses = Array.from(new Set(submissions.map(s => s.studentClass).filter(Boolean))) as string[];
 
     const formatDateTime = (dateStr: string) => {
         try {
@@ -196,7 +203,7 @@ export default function TeacherDashboard() {
                             className="w-full sm:w-40 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                         >
                             <option value="all">Semua Kelas</option>
-                            {uniqueClasses.map(c => (
+                            {availableClasses.map(c => (
                                 <option key={c} value={c}>{c}</option>
                             ))}
                         </select>
