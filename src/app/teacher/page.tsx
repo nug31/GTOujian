@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Wrench, CheckCircle2, ChevronRight, LogOut, FileText, Search, Clock, AlertCircle, Edit, Trash2 } from "lucide-react";
+import { Wrench, CheckCircle2, ChevronRight, LogOut, FileText, Search, Clock, AlertCircle, Edit, Trash2, RotateCw } from "lucide-react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
 import { useAppStore, Submission } from "@/lib/dataStore";
@@ -37,6 +37,11 @@ export default function TeacherDashboard() {
 
     const handleLogout = () => {
         router.push("/login");
+    };
+
+    const handleRefresh = async () => {
+        await fetchSubmissions();
+        await fetchClasses();
     };
 
     const filteredSubmissions = submissions.filter((sub) => {
@@ -117,6 +122,14 @@ export default function TeacherDashboard() {
                             {teacherName.charAt(0)}
                         </div>
                         <div className="h-6 w-px bg-slate-200 mx-1"></div>
+                        <button
+                            onClick={handleRefresh}
+                            className={`p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all ${isLoading ? 'animate-spin text-indigo-500' : ''}`}
+                            title="Segarkan Data"
+                            disabled={isLoading}
+                        >
+                            <RotateCw className="w-5 h-5" />
+                        </button>
                         <button
                             onClick={handleLogout}
                             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"

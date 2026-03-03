@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Wrench, Clock, FileText, CheckCircle2, ChevronRight, LogOut } from "lucide-react";
+import { Wrench, Clock, FileText, CheckCircle2, ChevronRight, LogOut, RotateCw } from "lucide-react";
 import { useAppStore } from "@/lib/dataStore";
 
 export default function StudentDashboard() {
@@ -43,6 +43,11 @@ export default function StudentDashboard() {
         router.push("/login");
     };
 
+    const handleRefresh = async () => {
+        await fetchExams();
+        await fetchSubmissions();
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-500/30">
             {/* Header */}
@@ -66,6 +71,14 @@ export default function StudentDashboard() {
                             {userInfo?.name?.charAt(0) || "S"}
                         </div>
                         <div className="h-6 w-px bg-slate-200 mx-1"></div>
+                        <button
+                            onClick={handleRefresh}
+                            className={`p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all ${isLoading ? 'animate-spin text-blue-500' : ''}`}
+                            title="Segarkan Penugasan"
+                            disabled={isLoading}
+                        >
+                            <RotateCw className="w-5 h-5" />
+                        </button>
                         <button
                             onClick={handleLogout}
                             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
