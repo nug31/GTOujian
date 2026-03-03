@@ -161,26 +161,31 @@ export const useAppStore = create<AppState>((set, get) => ({
         const trimmedNis = submission.nis.trim();
         console.log(`Attempting to add submission for NIS: ${trimmedNis}, Exam: ${submission.examId}`);
 
-        const { error } = await supabase
-            .from('submissions')
-            .insert([{
-                student_name: submission.studentName,
-                nis: trimmedNis,
-                exam_id: submission.examId,
-                exam_title: submission.examTitle,
-                status: submission.status,
-                score: submission.score,
-                onshape_link: submission.onshapeLink,
-                is_late: submission.isLate || false,
-                tab_switches: submission.tabSwitches || 0,
-                student_class: submission.studentClass,
-                criteria: submission.criteria,
-                feedback: submission.feedback
-            }]);
+        const submissionData: any = {
+            student_name: submission.studentName,
+            nis: trimmedNis,
+            exam_id: submission.examId,
+            exam_title: submission.examTitle,
+            status: submission.status,
+            score: submission.score,
+            onshape_link: submission.onshapeLink,
+        };
 
-        if (error) {
-            console.error('Error adding submission:', error);
-            return { success: false, error: error.message };
+        // Add optional/new columns dynamically based on presence
+        // This prevents 'column not found' errors if schema isn't fully updated
+        if (submission.studentClass) submissionData.student_class = submission.studentClass;
+        if (submission.isLate !== undefined) submissionData.is_late = submission.isLate;
+        if (submission.tabSwitches !== undefined) submissionData.tab_switches = submission.tabSwitches;
+        if (submission.criteria) submissionData.criteria = submission.criteria;
+        if (submission.feedback) submissionData.feedback = submission.feedback;
+
+        const { error: insertError } = await supabase
+            .from('submissions')
+            .insert([submissionData]);
+
+        if (insertError) {
+            console.error('Error adding submission:', insertError);
+            return { success: false, error: insertError.message };
         } else {
             console.log('Submission added successfully');
             await get().fetchSubmissions();
