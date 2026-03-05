@@ -32,9 +32,17 @@ export interface Submission {
     feedback?: string;
 }
 
+export interface Student {
+    id?: string;
+    name: string;
+    nisn: string;
+    class: string;
+}
+
 interface AppState {
     exams: Exam[];
     submissions: Submission[];
+    students: Student[];
     isLoading: boolean;
     fetchExams: () => Promise<void>;
     fetchSubmissions: () => Promise<void>;
@@ -51,6 +59,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
     exams: [],
     submissions: [],
+    students: [],
     isLoading: false,
 
     fetchExams: async () => {
@@ -86,11 +95,17 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         const { data: stuData, error: stuError } = await supabase
             .from('students')
-            .select('nisn, class');
+            .select('nisn, name, class');
 
         if (subError || stuError) {
             console.error('Error fetching data:', subError || stuError);
         } else {
+            const mappedStudents: Student[] = (stuData || []).map(s => ({
+                name: s.name,
+                nisn: s.nisn,
+                class: s.class
+            }));
+
             const studentMap = new Map((stuData || []).map(s => [s.nisn, s.class]));
             const mappedSubmissions: Submission[] = (subData || []).map(item => ({
                 id: item.id,
@@ -108,7 +123,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 criteria: item.criteria,
                 feedback: item.feedback
             }));
-            set({ submissions: mappedSubmissions });
+            set({ submissions: mappedSubmissions, students: mappedStudents });
         }
         set({ isLoading: false });
     },

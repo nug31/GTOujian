@@ -16,7 +16,7 @@ export default function TeacherDashboard() {
     const [searchQuery, setSearchQuery] = useState("");
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [teacherName, setTeacherName] = useState("Bpk. Ahmad Riyadi, S.T.");
-    const { submissions, fetchSubmissions, deleteSubmission, isLoading } = useAppStore();
+    const { submissions, students, fetchSubmissions, deleteSubmission, isLoading } = useAppStore();
 
     useEffect(() => {
         const info = localStorage.getItem("user_info");
@@ -103,6 +103,27 @@ export default function TeacherDashboard() {
         XLSX.writeFile(workbook, `Data_Penilaian_GTO_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
+    // Filter for statistics (ignores the all/pending/graded status filter)
+    const statsFiltered = submissions.filter((sub) => {
+        const matchesClass = classFilter === "all" || sub.studentClass === classFilter;
+        const matchesSearch = sub.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            sub.nis.includes(searchQuery);
+        return matchesClass && matchesSearch;
+    });
+
+    const pendingCount = statsFiltered.filter(s => s.status === 'pending').length;
+    const gradedCount = statsFiltered.filter(s => s.status === 'graded').length;
+
+    // Calculate "Belum Mengumpulkan"
+    const submittedNis = new Set(statsFiltered.map(s => s.nis));
+    const totalStudentsInClass = students.filter(s => {
+        const matchesClass = classFilter === "all" || s.class === classFilter;
+        const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.nisn.includes(searchQuery);
+        return matchesClass && matchesSearch;
+    });
+    const notSubmittedCount = totalStudentsInClass.filter(s => !submittedNis.has(s.nisn)).length;
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-500/30">
             {/* Header */}
@@ -165,14 +186,14 @@ export default function TeacherDashboard() {
                     </div>
 
                     {/* KPI Cards Mini */}
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4">
                         <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
                             <div className="p-3 bg-amber-50 text-amber-500 rounded-xl border border-amber-100/50">
                                 <Clock className="w-6 h-6" />
                             </div>
                             <div>
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Antrean Nilai</p>
-                                <p className="text-2xl font-black text-slate-800 font-outfit">{submissions.filter(s => s.status === 'pending').length}</p>
+                                <p className="text-2xl font-black text-slate-800 font-outfit">{pendingCount}</p>
                             </div>
                         </div>
                         <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
@@ -181,7 +202,16 @@ export default function TeacherDashboard() {
                             </div>
                             <div>
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Selesai Dinilai</p>
-                                <p className="text-2xl font-black text-slate-800 font-outfit">{submissions.filter(s => s.status === 'graded').length}</p>
+                                <p className="text-2xl font-black text-slate-800 font-outfit">{gradedCount}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+                            <div className="p-3 bg-rose-50 text-rose-500 rounded-xl border border-rose-100/50">
+                                <AlertCircle className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Belum Kumpul</p>
+                                <p className="text-2xl font-black text-slate-800 font-outfit">{notSubmittedCount}</p>
                             </div>
                         </div>
                     </div>
@@ -244,10 +274,10 @@ export default function TeacherDashboard() {
                             Ekspor Excel
                         </button>
                     </div>
-                </div>
+                </div >
 
                 {/* Submissions List */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-x-auto">
+                < div className="bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-x-auto" >
                     <table className="min-w-full divide-y divide-slate-200/80">
                         <thead className="bg-slate-50/80">
                             <tr>
@@ -374,8 +404,8 @@ export default function TeacherDashboard() {
                             )}
                         </tbody>
                     </table>
-                </div>
-            </main>
-        </div>
+                </div >
+            </main >
+        </div >
     );
 }
