@@ -11,7 +11,7 @@ import { useAppStore, Submission } from "@/lib/dataStore";
 // Mock data submissions
 export default function TeacherDashboard() {
     const router = useRouter();
-    const [filter, setFilter] = useState<"all" | "pending" | "graded">("all");
+    const [filter, setFilter] = useState<"all" | "pending" | "graded" | "missing">("all");
     const [classFilter, setClassFilter] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
@@ -53,8 +53,29 @@ export default function TeacherDashboard() {
         const matchesClass = classFilter === "all" || sub.studentClass === classFilter;
         const matchesSearch = sub.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             sub.nis.includes(searchQuery);
-        return matchesFilter && matchesClass && matchesSearch;
+        return (filter === "missing" ? false : matchesFilter) && matchesClass && matchesSearch;
     });
+
+    // If filter is "missing", we need to combine roster with submissions
+    const displayData = filter === "missing" ?
+        students.filter(s => {
+            const matchesClass = classFilter === "all" || s.class === classFilter;
+            const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.nisn.includes(searchQuery);
+            const hasSubmitted = submissions.some(sub => sub.nis === s.nisn);
+            return matchesClass && matchesSearch && !hasSubmitted;
+        }).map(s => ({
+            id: `missing-${s.nisn}`,
+            studentName: s.name,
+            nis: s.nisn,
+            studentClass: s.class,
+            examTitle: "-",
+            submitTime: "-",
+            status: "missing" as const,
+            score: null,
+            onshapeLink: "",
+            isLate: false
+        })) : filteredSubmissions;
 
     const formatDateTime = (dateStr: string) => {
         try {
@@ -187,7 +208,10 @@ export default function TeacherDashboard() {
 
                     {/* KPI Cards Mini */}
                     <div className="flex flex-wrap gap-4">
-                        <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+                        <button
+                            onClick={() => setFilter("pending")}
+                            className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all active:scale-95 text-left"
+                        >
                             <div className="p-3 bg-amber-50 text-amber-500 rounded-xl border border-amber-100/50">
                                 <Clock className="w-6 h-6" />
                             </div>
@@ -195,8 +219,11 @@ export default function TeacherDashboard() {
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Antrean Nilai</p>
                                 <p className="text-2xl font-black text-slate-800 font-outfit">{pendingCount}</p>
                             </div>
-                        </div>
-                        <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+                        </button>
+                        <button
+                            onClick={() => setFilter("graded")}
+                            className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all active:scale-95 text-left"
+                        >
                             <div className="p-3 bg-green-50 text-green-500 rounded-xl border border-green-100/50">
                                 <CheckCircle2 className="w-6 h-6" />
                             </div>
@@ -204,8 +231,11 @@ export default function TeacherDashboard() {
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Selesai Dinilai</p>
                                 <p className="text-2xl font-black text-slate-800 font-outfit">{gradedCount}</p>
                             </div>
-                        </div>
-                        <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+                        </button>
+                        <button
+                            onClick={() => setFilter("missing")}
+                            className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all active:scale-95 text-left"
+                        >
                             <div className="p-3 bg-rose-50 text-rose-500 rounded-xl border border-rose-100/50">
                                 <AlertCircle className="w-6 h-6" />
                             </div>
@@ -213,7 +243,7 @@ export default function TeacherDashboard() {
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Belum Kumpul</p>
                                 <p className="text-2xl font-black text-slate-800 font-outfit">{notSubmittedCount}</p>
                             </div>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
@@ -240,6 +270,13 @@ export default function TeacherDashboard() {
                                 }`}
                         >
                             Selesai Dinilai
+                        </button>
+                        <button
+                            onClick={() => setFilter("missing")}
+                            className={`flex-1 sm:px-6 py-2 text-sm font-bold rounded-lg transition-all ${filter === "missing" ? "bg-white text-rose-600 shadow-sm ring-1 ring-slate-200/50" : "text-slate-500 hover:text-slate-800"
+                                }`}
+                        >
+                            Belum Mengumpulkan
                         </button>
                     </div>
 
@@ -306,8 +343,8 @@ export default function TeacherDashboard() {
                                         <p>Memuat data pengumpulan...</p>
                                     </td>
                                 </tr>
-                            ) : filteredSubmissions.length > 0 ? (
-                                filteredSubmissions.map((sub, index) => (
+                            ) : displayData.length > 0 ? (
+                                displayData.map((sub, index) => (
                                     <motion.tr
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -352,9 +389,13 @@ export default function TeacherDashboard() {
                                                 <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-lg bg-green-50 text-green-700 border border-green-200/60 items-center justify-center gap-1.5 shadow-sm">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div> Nilai Akhir: {sub.score}
                                                 </span>
-                                            ) : (
+                                            ) : sub.status === "pending" ? (
                                                 <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-lg bg-amber-50 text-amber-700 border border-amber-200/60 items-center justify-center gap-1.5 shadow-sm">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Pending Appraisal
+                                                </span>
+                                            ) : (
+                                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-lg bg-rose-50 text-rose-700 border border-rose-200/60 items-center justify-center gap-1.5 shadow-sm">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div> Belum Mengumpulkan
                                                 </span>
                                             )}
                                         </td>
@@ -382,10 +423,12 @@ export default function TeacherDashboard() {
                                                 </button>
                                                 <button
                                                     onClick={() => router.push(`/teacher/grade/${sub.id}`)}
-                                                    className={`inline-flex items-center px-4 py-2 border border-transparent text-xs font-bold rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.05)] text-white ${sub.status === "graded" ? "bg-slate-800 hover:bg-slate-700" : "bg-indigo-600 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.3)]"
+                                                    className={`inline-flex items-center px-4 py-2 border border-transparent text-xs font-bold rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.05)] text-white ${sub.status === "graded" ? "bg-slate-800 hover:bg-slate-700" :
+                                                        sub.status === "missing" ? "bg-rose-600 hover:bg-rose-500" :
+                                                            "bg-indigo-600 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.3)]"
                                                         } transition-all uppercase tracking-wide`}
                                                 >
-                                                    {sub.status === "graded" ? "Lihat Detail" : "Beri Nilai"}
+                                                    {sub.status === "graded" ? "Lihat Detail" : sub.status === "missing" ? "Tagih Tugas" : "Beri Nilai"}
                                                     <ChevronRight className="ml-1.5 w-4 h-4" />
                                                 </button>
                                             </div>
