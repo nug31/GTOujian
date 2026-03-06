@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Users, AlertCircle, Send, Loader2, Search, X } from "lucide-react";
+import { ArrowLeft, Users, AlertCircle, Send, Loader2, Search, X, RotateCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/dataStore";
 import { supabase } from "@/lib/supabase";
@@ -22,6 +22,7 @@ export default function ExamMonitorPage({ params: paramsPromise }: { params: Pro
 
     const [activeStudents, setActiveStudents] = useState<ActiveStudent[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [lastSync, setLastSync] = useState<Date | null>(null);
 
     // Warning Modal State
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
@@ -32,12 +33,10 @@ export default function ExamMonitorPage({ params: paramsPromise }: { params: Pro
     // Supabase Channel Reference
     const [channel, setChannel] = useState<any>(null);
 
-    useEffect(() => {
-        if (exams.length === 0) fetchExams();
-    }, [exams, fetchExams]);
-
-    useEffect(() => {
+    const initChannel = () => {
         if (!exam) return;
+
+        if (channel) channel.unsubscribe();
 
         const roomName = `exam-${exam.id}`;
         const newChannel = supabase.channel(roomName);
@@ -49,37 +48,41 @@ export default function ExamMonitorPage({ params: paramsPromise }: { params: Pro
                 const students: ActiveStudent[] = [];
 
                 for (const key in newState) {
-                    const presenceData = newState[key][0] as any;
-                    if (presenceData && presenceData.nisn) {
-                        students.push({
-                            nisn: presenceData.nisn,
-                            name: presenceData.name,
-                            class: presenceData.class,
-                            onlineAt: presenceData.onlineAt || new Date().toISOString()
-                        });
+                    const presences = newState[key] as any[];
+                    if (presences && presences.length > 0) {
+                        const presenceData = presences[0];
+                        if (presenceData && (presenceData.nisn || presenceData.name)) {
+                            students.push({
+                                nisn: presenceData.nisn || "N/A",
+                                name: presenceData.name || "Unknown",
+                                class: presenceData.class || "N/A",
+                                onlineAt: presenceData.onlineAt || new Date().toISOString()
+                            });
+                        }
                     }
                 }
 
                 students.sort((a, b) => a.name.localeCompare(b.name));
                 setActiveStudents(students);
-            })
-            .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-                console.log('Join Presence:', key, newPresences);
-            })
-            .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-                console.log('Leave Presence:', key, leftPresences);
+                setLastSync(new Date());
             })
             .subscribe(async (status, err) => {
                 console.log("Monitor channel status:", status, err);
-                if (status === 'SUBSCRIBED') {
-                    console.log("Connected to monitor channel:", roomName);
-                }
             });
 
         setChannel(newChannel);
+    };
 
+    useEffect(() => {
+        if (exams.length === 0) fetchExams();
+    }, [exams, fetchExams]);
+
+    useEffect(() => {
+        if (exam && !channel) {
+            initChannel();
+        }
         return () => {
-            newChannel.unsubscribe();
+            if (channel) channel.unsubscribe();
         };
     }, [exam]);
 
@@ -155,11 +158,29 @@ export default function ExamMonitorPage({ params: paramsPromise }: { params: Pro
                                 <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
                                     Live Monitor <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
                                 </h1>
-                                <p className="text-sm text-slate-500 mt-1">{exam.title}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-sm text-slate-500">{exam.title}</p>
+                                    {lastSync && (
+                                        <>
+                                            <span className="text-slate-300">•</span>
+                                            <span className="text-[10px] text-slate-400 font-medium bg-slate-100 px-1.5 py-0.5 rounded">
+                                                Update Terakhir: {lastSync.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => initChannel()}
+                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all flex items-center gap-2 border border-transparent hover:border-indigo-100 group"
+                                title="Segarkan Koneksi Realtime"
+                            >
+                                <RotateCw className="w-4 h-4 group-active:animate-spin" />
+                                <span className="text-xs font-semibold">Refresh Koneksi</span>
+                            </button>
                             <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border border-indigo-100">
                                 <Users className="w-4 h-4" />
                                 {activeStudents.length} Siswa Aktif

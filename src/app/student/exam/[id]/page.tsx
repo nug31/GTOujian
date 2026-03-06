@@ -106,12 +106,13 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         if (!examStarted || submitted || !userInfo || !exam) return;
 
         const roomName = `exam-${exam.id}`;
-        console.log("Joining Presence Room:", roomName);
+        const nisnKey = userInfo.nisn.trim();
+        console.log("Joining Presence Room:", roomName, "as", nisnKey);
 
         const channel = supabase.channel(roomName, {
             config: {
                 presence: {
-                    key: userInfo.nisn,
+                    key: nisnKey,
                 },
             },
         });
@@ -121,32 +122,47 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             'broadcast',
             { event: 'warning' },
             (payload) => {
-                // If the message is for everyone, or specifically for this student
-                if (!payload.payload.targetNisn || payload.payload.targetNisn === userInfo.nisn) {
+                if (!payload.payload.targetNisn || payload.payload.targetNisn === nisnKey) {
                     setLiveWarning(payload.payload.message);
                 }
             }
         );
 
-        // 2. Subscribe and track presence
-        channel.subscribe(async (status, err) => {
-            console.log("Student Realtime Status:", status, err);
-            if (status === 'SUBSCRIBED') {
-                const trackRes = await channel.track({
+        // Function to track presence
+        const trackPresence = async () => {
+            try {
+                await channel.track({
                     name: userInfo.name,
-                    nisn: userInfo.nisn,
+                    nisn: nisnKey,
                     class: userInfo.class,
                     onlineAt: new Date().toISOString(),
+                    lastSeen: Date.now()
                 });
-                console.log("Student Presence Tracked:", trackRes);
+            } catch (err) {
+                console.error("Presence tracking failed:", err);
+            }
+        };
+
+        // 2. Subscribe and track presence
+        channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await trackPresence();
             }
         });
 
+        // 3. Heartbeat: Re-track every 45 seconds to stay alive in presence table
+        const heartbeat = setInterval(() => {
+            if (channel && channel.state === 'joined') {
+                trackPresence();
+            }
+        }, 45000);
+
         return () => {
             console.log("Leaving Presence Room:", roomName);
+            clearInterval(heartbeat);
             channel.unsubscribe();
         };
-    }, [examStarted, submitted, userInfo?.nisn, exam?.id]);
+    }, [examStarted, submitted, userInfo?.nisn, userInfo?.name, userInfo?.class, exam?.id]);
 
 
     // Disable right-click and common cheat shortcuts on exam page
