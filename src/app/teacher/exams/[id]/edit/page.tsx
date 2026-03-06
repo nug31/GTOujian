@@ -51,15 +51,17 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
             setTitle(exam.title);
             setDescription(exam.description);
             setDuration(exam.duration.split(' ')[0]);
+            if (exam.targetClass) {
+                setTargetClass(exam.targetClass);
+            } else {
+                setTargetClass("Semua Kelas");
+            }
             if (exam.imageUrl) {
                 setImageUrl(exam.imageUrl);
                 // Hanya tampilkan jika URL valid dari Supabase Storage
                 if (exam.imageUrl.startsWith('https://')) {
                     setStoredImageUrl(exam.imageUrl);
                 }
-            }
-            if (exam.targetClass) {
-                setTargetClass(exam.targetClass);
             }
             setIsRemedial(exam.isRemedial || false);
             setParentExamId(exam.parentExamId || "");
@@ -189,9 +191,9 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                     required
                                     value={targetClass}
                                     onChange={(e) => setTargetClass(e.target.value)}
-                                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white"
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white font-medium"
                                 >
-                                    <option value="" disabled>Pilih Kelas</option>
+                                    <option value="Semua Kelas">Semua Kelas</option>
                                     {availableClasses.map((cls) => (
                                         <option key={cls} value={cls}>{cls}</option>
                                     ))}
