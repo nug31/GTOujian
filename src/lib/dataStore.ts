@@ -9,6 +9,9 @@ export interface Exam {
     status: 'Aktif' | 'Selesai';
     dueDate?: string;
     imageUrl?: string;
+    targetClass?: string;
+    isRemedial?: boolean;
+    parentExamId?: string;
 }
 
 export interface Submission {
@@ -79,7 +82,10 @@ export const useAppStore = create<AppState>((set, get) => ({
                 duration: item.duration,
                 status: item.status,
                 dueDate: item.due_date,
-                imageUrl: item.image_url
+                imageUrl: item.image_url,
+                targetClass: item.target_class,
+                isRemedial: item.is_remedial,
+                parentExamId: item.parent_exam_id
             }));
             set({ exams: mappedExams });
         }
@@ -137,7 +143,10 @@ export const useAppStore = create<AppState>((set, get) => ({
                 duration: exam.duration,
                 status: exam.status,
                 due_date: exam.dueDate || null,
-                image_url: exam.imageUrl
+                image_url: exam.imageUrl,
+                target_class: exam.targetClass,
+                is_remedial: exam.isRemedial || false,
+                parent_exam_id: exam.parentExamId || null
             }]);
 
         if (error) console.error('Error adding exam:', error);
@@ -145,13 +154,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     updateExam: async (id, updatedFields) => {
-        const mappedFields: Partial<Record<string, string | null>> = {};
+        const mappedFields: Record<string, any> = {};
         if (updatedFields.title) mappedFields.title = updatedFields.title;
         if (updatedFields.description) mappedFields.description = updatedFields.description;
         if (updatedFields.duration) mappedFields.duration = updatedFields.duration;
         if (updatedFields.status) mappedFields.status = updatedFields.status;
         if (updatedFields.dueDate !== undefined) mappedFields.due_date = updatedFields.dueDate || null;
         if (updatedFields.imageUrl) mappedFields.image_url = updatedFields.imageUrl;
+        if (updatedFields.targetClass) mappedFields.target_class = updatedFields.targetClass;
+        if (updatedFields.isRemedial !== undefined) mappedFields.is_remedial = updatedFields.isRemedial;
+        if (updatedFields.parentExamId !== undefined) mappedFields.parent_exam_id = updatedFields.parentExamId || null;
 
         const { error } = await supabase
             .from('exams')

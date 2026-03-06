@@ -132,71 +132,100 @@ export default function StudentDashboard() {
                             <p className="font-medium text-sm">Menarik data penugasan dari server...</p>
                         </div>
                     ) : (
-                        exams.map((exam, index) => {
-                            const submitted = hasSubmitted(exam.id);
-                            const isActive = exam.status === "Aktif" && !submitted;
+                        exams
+                            .filter(exam => {
+                                // 1. Basic class filter
+                                if (exam.targetClass !== userInfo?.class) return false;
 
-                            return (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 15 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    key={exam.id}
-                                    className="h-full"
-                                >
-                                    <div
-                                        className={`bg-white rounded-2xl border ${isActive
-                                            ? "border-blue-200 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-xl hover:border-blue-300"
-                                            : "border-slate-200 opacity-90 shadow-sm"
-                                            } transition-all duration-300 overflow-hidden flex flex-col h-full group relative`}
+                                // 2. Remedial logic
+                                if (exam.isRemedial && exam.parentExamId) {
+                                    // Only show if student failed the parent exam (score < 75)
+                                    const parentSubmission = submissions.find(s =>
+                                        s.examId === exam.parentExamId &&
+                                        s.nis.trim().toLowerCase() === userInfo?.nisn.trim().toLowerCase() &&
+                                        s.status === 'graded'
+                                    );
+
+                                    // If no parent submission or parent score >= 75, don't show remedial
+                                    if (!parentSubmission || (parentSubmission.score !== null && parentSubmission.score >= 75)) {
+                                        return false;
+                                    }
+                                }
+
+                                return true;
+                            })
+                            .map((exam, index) => {
+                                const submitted = hasSubmitted(exam.id);
+                                const isActive = exam.status === "Aktif" && !submitted;
+
+                                return (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        key={exam.id}
+                                        className="h-full"
                                     >
-                                        <div className="p-7 flex-grow">
-                                            <div className="flex justify-between items-start mb-5">
-                                                <h2 className="text-xl font-bold text-slate-900 line-clamp-2 leading-tight font-outfit group-hover:text-blue-700 transition-colors pr-4">{exam.title}</h2>
-                                                {submitted || exam.status === "Selesai" ? (
-                                                    <span className="flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 rounded-md uppercase tracking-wider whitespace-nowrap shadow-sm">
-                                                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Sukses
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200/60 px-2.5 py-1 rounded-md uppercase tracking-wider whitespace-nowrap shadow-sm">
-                                                        Belum Dikerjakan
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <p className="text-sm text-slate-500 mb-6 line-clamp-2 leading-relaxed font-medium">
-                                                {exam.description || "Instruksi pengerjaan lebih detail akan ditampilkan setelah Anda memulai ujian."}
-                                            </p>
-
-                                            <div className="flex items-center text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 col-span-2 justify-center">
-                                                <Clock className="w-4 h-4 mr-2 text-blue-500" />
-                                                <span>Waktu Pengerjaan: {exam.duration}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className={`p-5 flex-none ${isActive ? "bg-white border-t border-slate-100" : "bg-slate-50 border-t border-slate-200"}`}>
-                                            {isActive ? (
-                                                <button
-                                                    onClick={() => router.push(`/student/exam/${exam.id}`)}
-                                                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] uppercase tracking-wide text-sm border border-blue-500"
-                                                >
-                                                    Mulai Misi Praktik <ChevronRight className="w-4 h-4" />
-                                                </button>
-                                            ) : (
-                                                <div className="flex justify-between items-center w-full px-2 py-1.5 bg-white rounded-xl border border-slate-200 shadow-sm">
-                                                    <span className="text-slate-500 font-bold justify-center px-4 py-2 uppercase tracking-wide text-[10px]">Predikat Nilai Terakhir</span>
-                                                    <div className="px-5 py-2 border-l border-slate-200">
-                                                        <span className={`text-xl font-bold tracking-tight font-outfit ${getExamScore(exam.id) === 'Pending' ? 'text-amber-500 text-lg' : 'text-slate-900'}`}>
-                                                            {getExamScore(exam.id) || '-'}
-                                                        </span>
+                                        <div
+                                            className={`bg-white rounded-2xl border ${isActive
+                                                ? "border-blue-200 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-xl hover:border-blue-300"
+                                                : "border-slate-200 opacity-90 shadow-sm"
+                                                } transition-all duration-300 overflow-hidden flex flex-col h-full group relative`}
+                                        >
+                                            <div className="p-7 flex-grow">
+                                                <div className="flex justify-between items-start mb-5">
+                                                    <h2 className="text-xl font-bold text-slate-900 line-clamp-2 leading-tight font-outfit group-hover:text-blue-700 transition-colors pr-4">{exam.title}</h2>
+                                                    <div className="flex flex-col gap-1 items-end">
+                                                        {submitted || exam.status === "Selesai" ? (
+                                                            <span className="flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 rounded-md uppercase tracking-wider whitespace-nowrap shadow-sm">
+                                                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Sukses
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200/60 px-2.5 py-1 rounded-md uppercase tracking-wider whitespace-nowrap shadow-sm">
+                                                                Belum Dikerjakan
+                                                            </span>
+                                                        )}
+                                                        {exam.isRemedial && (
+                                                            <span className="text-[9px] font-black text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded uppercase tracking-tighter">
+                                                                Tugas Remedial
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
-                                            )}
+
+                                                <p className="text-sm text-slate-500 mb-6 line-clamp-2 leading-relaxed font-medium">
+                                                    {exam.description || "Instruksi pengerjaan lebih detail akan ditampilkan setelah Anda memulai ujian."}
+                                                </p>
+
+                                                <div className="flex items-center text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 col-span-2 justify-center">
+                                                    <Clock className="w-4 h-4 mr-2 text-blue-500" />
+                                                    <span>Waktu Pengerjaan: {exam.duration}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className={`p-5 flex-none ${isActive ? "bg-white border-t border-slate-100" : "bg-slate-50 border-t border-slate-200"}`}>
+                                                {isActive ? (
+                                                    <button
+                                                        onClick={() => router.push(`/student/exam/${exam.id}`)}
+                                                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] uppercase tracking-wide text-sm border border-blue-500"
+                                                    >
+                                                        Mulai Misi Praktik <ChevronRight className="w-4 h-4" />
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex justify-between items-center w-full px-2 py-1.5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                                        <span className="text-slate-500 font-bold justify-center px-4 py-2 uppercase tracking-wide text-[10px]">Predikat Nilai Terakhir</span>
+                                                        <div className="px-5 py-2 border-l border-slate-200">
+                                                            <span className={`text-xl font-bold tracking-tight font-outfit ${getExamScore(exam.id) === 'Pending' ? 'text-amber-500 text-lg' : 'text-slate-900'}`}>
+                                                                {getExamScore(exam.id) || '-'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            );
-                        })
+                                    </motion.div>
+                                );
+                            })
                     )}
                 </div>
             </main>

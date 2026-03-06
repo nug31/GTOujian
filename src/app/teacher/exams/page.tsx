@@ -140,6 +140,15 @@ export default function TeacherExamsDashboard() {
                                         <p className="text-slate-500 text-sm mb-6 line-clamp-3 leading-relaxed">{exam.description || "Tidak ada deksripsi khusus untuk paket soal ini."}</p>
 
                                         <div className="text-xs text-slate-600 space-y-2.5 font-medium border-t border-slate-100 pt-4 mt-auto">
+                                            <div className="flex items-center"><span className="w-20 text-slate-400">Target Kelas:</span> <span className="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100/50">{exam.targetClass || "Semua"}</span></div>
+                                            {exam.isRemedial && (
+                                                <div className="flex items-center">
+                                                    <span className="w-20 text-slate-400">Tipe:</span>
+                                                    <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100/50 flex items-center gap-1">
+                                                        REMEDIAL
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="flex items-center"><span className="w-20 text-slate-400">Durasi:</span> <span className="font-bold text-slate-800">{exam.duration}</span></div>
                                             <div className="flex items-center"><span className="w-20 text-slate-400">Kode Hash:</span> <span className="font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase border border-slate-200">{exam.id.split('-')[0]}</span></div>
                                         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Image as ImageIcon, CheckCircle2, AlertCircle, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -13,13 +13,26 @@ export default function NewExamPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [duration, setDuration] = useState("120");
+    const [targetClass, setTargetClass] = useState("");
+    const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
+    const [isRemedial, setIsRemedial] = useState(false);
+    const [parentExamId, setParentExamId] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { addExam } = useAppStore();
+    const { exams, addExam, fetchAvailableClasses, fetchExams } = useAppStore();
+
+    useEffect(() => {
+        if (exams.length === 0) fetchExams();
+        const loadClasses = async () => {
+            const { data } = await fetchAvailableClasses();
+            if (data) setAvailableClasses(data);
+        };
+        loadClasses();
+    }, [fetchAvailableClasses]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -68,7 +81,10 @@ export default function NewExamPage() {
             description,
             duration: `${duration} Menit`,
             status: 'Aktif',
-            imageUrl: finalImageUrl
+            imageUrl: finalImageUrl,
+            targetClass: targetClass,
+            isRemedial: isRemedial,
+            parentExamId: isRemedial ? parentExamId : undefined
         });
 
         setIsUploading(false);
@@ -134,6 +150,53 @@ export default function NewExamPage() {
                                     required type="number" min="10" value={duration} onChange={(e) => setDuration(e.target.value)}
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm"
                                 />
+                            </div>
+
+                            <div className="group">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Target Kelas <span className="text-red-500">*</span></label>
+                                <select
+                                    required
+                                    value={targetClass}
+                                    onChange={(e) => setTargetClass(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm appearance-none"
+                                >
+                                    <option value="" disabled>Pilih Kelas</option>
+                                    {availableClasses.map((cls) => (
+                                        <option key={cls} value={cls}>{cls}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="group">
+                                    <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Tipe Paket <span className="text-red-500">*</span></label>
+                                    <select
+                                        required
+                                        value={isRemedial ? "true" : "false"}
+                                        onChange={(e) => setIsRemedial(e.target.value === "true")}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm appearance-none"
+                                    >
+                                        <option value="false">Ujian Utama (Reguler)</option>
+                                        <option value="true">Ujian Remedial</option>
+                                    </select>
+                                </div>
+
+                                {isRemedial && (
+                                    <div className="group">
+                                        <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Pilih Ujian Utama <span className="text-red-500">*</span></label>
+                                        <select
+                                            required
+                                            value={parentExamId}
+                                            onChange={(e) => setParentExamId(e.target.value)}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm appearance-none"
+                                        >
+                                            <option value="" disabled>Pilih Sumber Ujian</option>
+                                            {exams.filter(e => !e.isRemedial).map((e) => (
+                                                <option key={e.id} value={e.id}>{e.title}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-2">

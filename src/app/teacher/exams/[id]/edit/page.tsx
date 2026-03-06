@@ -20,10 +20,22 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
+    const [targetClass, setTargetClass] = useState("");
+    const [availableClasses, setAvailableClasses] = useState<string[]>([]);
+    const [isRemedial, setIsRemedial] = useState(false);
+    const [parentExamId, setParentExamId] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { exams, updateExam, fetchExams } = useAppStore();
+    const { exams, updateExam, fetchExams, fetchAvailableClasses } = useAppStore();
+
+    useEffect(() => {
+        const loadClasses = async () => {
+            const { data } = await fetchAvailableClasses();
+            if (data) setAvailableClasses(data);
+        };
+        loadClasses();
+    }, [fetchAvailableClasses]);
 
     // Fetch list if empty
     useEffect(() => {
@@ -46,6 +58,11 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                     setStoredImageUrl(exam.imageUrl);
                 }
             }
+            if (exam.targetClass) {
+                setTargetClass(exam.targetClass);
+            }
+            setIsRemedial(exam.isRemedial || false);
+            setParentExamId(exam.parentExamId || "");
         }
     }, [params.id, exams]);
 
@@ -98,7 +115,10 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
             title,
             description,
             duration: `${duration} Menit`,
-            imageUrl: finalImageUrl
+            imageUrl: finalImageUrl,
+            targetClass: targetClass,
+            isRemedial: isRemedial,
+            parentExamId: isRemedial ? parentExamId : undefined
         });
 
         setIsUploading(false);
@@ -161,6 +181,53 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                     required type="number" min="10" value={duration} onChange={(e) => setDuration(e.target.value)}
                                     className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm"
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Target Kelas <span className="text-red-500">*</span></label>
+                                <select
+                                    required
+                                    value={targetClass}
+                                    onChange={(e) => setTargetClass(e.target.value)}
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white"
+                                >
+                                    <option value="" disabled>Pilih Kelas</option>
+                                    {availableClasses.map((cls) => (
+                                        <option key={cls} value={cls}>{cls}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Paket <span className="text-red-500">*</span></label>
+                                    <select
+                                        required
+                                        value={isRemedial ? "true" : "false"}
+                                        onChange={(e) => setIsRemedial(e.target.value === "true")}
+                                        className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white"
+                                    >
+                                        <option value="false">Ujian Utama (Reguler)</option>
+                                        <option value="true">Ujian Remedial</option>
+                                    </select>
+                                </div>
+
+                                {isRemedial && (
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ujian Utama Terkait <span className="text-red-500">*</span></label>
+                                        <select
+                                            required
+                                            value={parentExamId}
+                                            onChange={(e) => setParentExamId(e.target.value)}
+                                            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white"
+                                        >
+                                            <option value="" disabled>Pilih Sumber Ujian</option>
+                                            {exams.filter(e => !e.isRemedial && e.id !== params.id).map((e) => (
+                                                <option key={e.id} value={e.id}>{e.title}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Upload Gambar Blueprint */}
