@@ -62,6 +62,15 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+button,
+select,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: pointer;
+}
+
 /* Premium Animations */
 @keyframes fadeIn {
   from {
