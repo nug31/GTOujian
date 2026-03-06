@@ -13,7 +13,7 @@ export default function NewExamPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [duration, setDuration] = useState("120");
-    const [targetClass, setTargetClass] = useState("");
+    const [targetClass, setTargetClass] = useState("Semua Kelas");
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -160,7 +160,7 @@ export default function NewExamPage() {
                                     onChange={(e) => setTargetClass(e.target.value)}
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm appearance-none"
                                 >
-                                    <option value="" disabled>Pilih Kelas</option>
+                                    <option value="Semua Kelas">Semua Kelas</option>
                                     {availableClasses.map((cls) => (
                                         <option key={cls} value={cls}>{cls}</option>
                                     ))}

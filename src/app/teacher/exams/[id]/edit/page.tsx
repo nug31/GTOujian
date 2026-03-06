@@ -20,7 +20,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
-    const [targetClass, setTargetClass] = useState("");
+    const [targetClass, setTargetClass] = useState("Semua Kelas");
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [isRemedial, setIsRemedial] = useState(false);
     const [parentExamId, setParentExamId] = useState("");

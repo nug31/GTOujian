@@ -135,7 +135,7 @@ export default function StudentDashboard() {
                         exams
                             .filter(exam => {
                                 // 1. Basic class filter
-                                if (exam.targetClass !== userInfo?.class) return false;
+                                if (exam.targetClass && exam.targetClass !== "Semua Kelas" && exam.targetClass !== userInfo?.class) return false;
 
                                 // 2. Remedial logic
                                 if (exam.isRemedial && exam.parentExamId) {
