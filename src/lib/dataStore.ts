@@ -144,7 +144,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 status: exam.status,
                 due_date: exam.dueDate || null,
                 image_url: exam.imageUrl,
-                target_class: exam.targetClass,
+                target_class: exam.targetClass === "Semua Kelas" ? null : exam.targetClass,
                 is_remedial: exam.isRemedial || false,
                 parent_exam_id: exam.parentExamId || null
             }]);
@@ -155,13 +155,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     updateExam: async (id, updatedFields) => {
         const mappedFields: Record<string, any> = {};
-        if (updatedFields.title) mappedFields.title = updatedFields.title;
-        if (updatedFields.description) mappedFields.description = updatedFields.description;
-        if (updatedFields.duration) mappedFields.duration = updatedFields.duration;
-        if (updatedFields.status) mappedFields.status = updatedFields.status;
+        if (updatedFields.title !== undefined) mappedFields.title = updatedFields.title;
+        if (updatedFields.description !== undefined) mappedFields.description = updatedFields.description;
+        if (updatedFields.duration !== undefined) mappedFields.duration = updatedFields.duration;
+        if (updatedFields.status !== undefined) mappedFields.status = updatedFields.status;
         if (updatedFields.dueDate !== undefined) mappedFields.due_date = updatedFields.dueDate || null;
-        if (updatedFields.imageUrl) mappedFields.image_url = updatedFields.imageUrl;
-        if (updatedFields.targetClass) mappedFields.target_class = updatedFields.targetClass;
+        if (updatedFields.imageUrl !== undefined) mappedFields.image_url = updatedFields.imageUrl;
+        if (updatedFields.targetClass !== undefined) {
+            mappedFields.target_class = updatedFields.targetClass === "Semua Kelas" ? null : updatedFields.targetClass;
+        }
         if (updatedFields.isRemedial !== undefined) mappedFields.is_remedial = updatedFields.isRemedial;
         if (updatedFields.parentExamId !== undefined) mappedFields.parent_exam_id = updatedFields.parentExamId || null;
 
