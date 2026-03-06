@@ -38,10 +38,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     const [timeLeft, setTimeLeft] = useState(7200);
     const [onshapeLink, setOnshapeLink] = useState("");
     const [submitted, setSubmitted] = useState(false);
-    const [tabSwitches, setTabSwitches] = useState(0);
-    const [showTabWarning, setShowTabWarning] = useState(false);
     const [countdownMessage, setCountdownMessage] = useState<string | null>(null);
-    const [lastHiddenTime, setLastHiddenTime] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -151,29 +148,6 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         };
     }, [examStarted, submitted, userInfo?.nisn, exam?.id]);
 
-    // Proctoring: Detect tab switching with tolerance
-    useEffect(() => {
-        if (!examStarted || submitted) return;
-
-        const handleVisibilityChange = () => {
-            if (document.hidden) {
-                setLastHiddenTime(Date.now());
-            } else {
-                if (lastHiddenTime) {
-                    const durationHidden = (Date.now() - lastHiddenTime) / 1000;
-                    // Only count as violation if hidden for more than 5 seconds
-                    if (durationHidden > 5) {
-                        setTabSwitches(prev => prev + 1);
-                        setShowTabWarning(true);
-                    }
-                    setLastHiddenTime(null);
-                }
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [examStarted, submitted, lastHiddenTime]);
 
     // Disable right-click and common cheat shortcuts on exam page
     useEffect(() => {
@@ -281,7 +255,6 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 score: null,
                 onshapeLink: onshapeLink,
                 isLate: timeLeft <= 0,
-                tabSwitches: tabSwitches,
                 studentClass: userInfo?.class
             });
 
@@ -317,43 +290,6 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 <div className="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-blue-600/5 rounded-full blur-3xl" />
             </div>
 
-            {/* ===== TAB SWITCH WARNING OVERLAY ===== */}
-            <AnimatePresence>
-                {showTabWarning && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[65] bg-amber-950/80 backdrop-blur-md flex items-center justify-center p-4"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border-2 border-amber-500"
-                        >
-                            <div className="bg-amber-600 px-6 py-4 flex items-center gap-3">
-                                <ShieldAlert className="w-8 h-8 text-white" />
-                                <h2 className="text-xl font-bold text-white tracking-wide">Peringatan Sistem</h2>
-                            </div>
-                            <div className="p-6 text-center">
-                                <p className="text-slate-300 text-lg font-medium leading-relaxed mb-4">
-                                    Terdeteksi aktivitas di luar halaman ujian.
-                                </p>
-                                <p className="text-amber-400 text-sm font-bold mb-8 uppercase tracking-widest">
-                                    Pelanggaran Ke-{tabSwitches} Teratat
-                                </p>
-                                <button
-                                    onClick={() => setShowTabWarning(false)}
-                                    className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-amber-900/40"
-                                >
-                                    Saya Mengerti & Kembali Bekerja
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* ===== COUNTDOWN ALERT OVERLAY ===== */}
             <AnimatePresence>
@@ -457,10 +393,10 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                     {[
                                         "Kerjakan soal secara mandiri tanpa bantuan eksternal.",
                                         "Buka lembar kerja Onshape di tab baru secara terpisah.",
-                                        "Dilarang beralih ke website lain selain dokumen Onshape.",
+                                        "Gunakan Onshape untuk menyelesaikan tugas desain 3D.",
                                         "Dilarang menutup atau me-refresh halaman penjagaan ini.",
                                         "Lampirkan link dokumen jawaban Anda sebelum timer habis.",
-                                        "Pelanggaran sistem akan otomatis tercatat sebagai diskualifikasi.",
+                                        "Pastikan link sharing Onshape sudah aktif sebelum dikirim.",
                                     ].map((rule, i) => (
                                         <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
                                             <span className="w-6 h-6 bg-slate-800 border border-slate-700 rounded-full text-[10px] font-bold text-slate-400 flex items-center justify-center flex-shrink-0 shadow-sm">{i + 1}</span>

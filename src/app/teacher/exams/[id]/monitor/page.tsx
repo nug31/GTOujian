@@ -298,7 +298,7 @@ export default function ExamMonitorPage({ params: paramsPromise }: { params: Pro
                                         autoFocus
                                     />
                                     <div className="flex gap-2 mt-2">
-                                        <button type="button" onClick={() => setWarningMessage("Mohon kerjakan secara mandiri dan jangan melihat tab lain!")} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors border border-slate-200">Preset: Jangan Nyotek</button>
+                                        <button type="button" onClick={() => setWarningMessage("Harap fokus pada pengerjaan Onshape Anda sesuai dengan blueprint!")} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors border border-slate-200">Preset: Fokus Onshape</button>
                                         <button type="button" onClick={() => setWarningMessage("Waktu ujian akan segera habis, segera selesaikan pekerjaan Onshape Anda.")} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors border border-slate-200">Preset: Waktu Habis</button>
                                     </div>
                                 </div>
