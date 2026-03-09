@@ -93,28 +93,51 @@ export default function TeacherDashboard() {
     };
 
     const exportToExcel = () => {
-        // Sort data by class and then by name (attendance order)
-        const sortedData = [...filteredSubmissions].sort((a, b) => {
-            const classA = a.studentClass || "";
-            const classB = b.studentClass || "";
-            if (classA < classB) return -1;
-            if (classA > classB) return 1;
-            return a.studentName.localeCompare(b.studentName);
+        // 1. Get students that match the current class filter
+        const targetStudents = students.filter(s =>
+            classFilter === "all" || s.class === classFilter
+        );
+
+        // 2. Map roster with submission data
+        const mergedData = targetStudents.map(student => {
+            // Find submission by NIS
+            const submission = filteredSubmissions.find(sub => sub.nis === student.nisn);
+
+            if (submission) {
+                return {
+                    "Kelas": submission.studentClass || student.class,
+                    "Nama Siswa": submission.studentName,
+                    "NIS": submission.nis,
+                    "Judul Ujian": submission.examTitle,
+                    "Waktu Kumpul": formatDateTime(submission.submitTime),
+                    "Status": submission.status === "graded" ? "Sudah Dinilai" : "Menunggu Penilaian",
+                    "Nilai": submission.score ?? "-",
+                    "Link Onshape": submission.onshapeLink,
+                    "Keterangan": submission.isLate ? "Terlambat" : "Tepat Waktu"
+                };
+            } else {
+                return {
+                    "Kelas": student.class,
+                    "Nama Siswa": student.name,
+                    "NIS": student.nisn,
+                    "Judul Ujian": "-",
+                    "Waktu Kumpul": "-",
+                    "Status": "Belum Mengumpulkan",
+                    "Nilai": "-",
+                    "Link Onshape": "-",
+                    "Keterangan": "-"
+                };
+            }
         });
 
-        const dataToExport = sortedData.map((sub) => ({
-            "Kelas": sub.studentClass || "-",
-            "Nama Siswa": sub.studentName,
-            "NIS": sub.nis,
-            "Judul Ujian": sub.examTitle,
-            "Waktu Kumpul": formatDateTime(sub.submitTime),
-            "Status": sub.status === "graded" ? "Sudah Dinilai" : "Menunggu Penilaian",
-            "Nilai": sub.score ?? "-",
-            "Link Onshape": sub.onshapeLink,
-            "Keterangan": sub.isLate ? "Terlambat" : "Tepat Waktu"
-        }));
+        // 3. Sort by class and then by name
+        const sortedData = mergedData.sort((a, b) => {
+            if (a.Kelas < b.Kelas) return -1;
+            if (a.Kelas > b.Kelas) return 1;
+            return a["Nama Siswa"].localeCompare(b["Nama Siswa"]);
+        });
 
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const worksheet = XLSX.utils.json_to_sheet(sortedData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Penilaian");
 
