@@ -93,7 +93,17 @@ export default function TeacherDashboard() {
     };
 
     const exportToExcel = () => {
-        const dataToExport = filteredSubmissions.map((sub) => ({
+        // Sort data by class and then by name (attendance order)
+        const sortedData = [...filteredSubmissions].sort((a, b) => {
+            const classA = a.studentClass || "";
+            const classB = b.studentClass || "";
+            if (classA < classB) return -1;
+            if (classA > classB) return 1;
+            return a.studentName.localeCompare(b.studentName);
+        });
+
+        const dataToExport = sortedData.map((sub) => ({
+            "Kelas": sub.studentClass || "-",
             "Nama Siswa": sub.studentName,
             "NIS": sub.nis,
             "Judul Ujian": sub.examTitle,
@@ -110,6 +120,7 @@ export default function TeacherDashboard() {
 
         // Set column widths
         const wscols = [
+            { wch: 12 }, // Kelas
             { wch: 25 }, // Nama Siswa
             { wch: 15 }, // NIS
             { wch: 30 }, // Judul Ujian
