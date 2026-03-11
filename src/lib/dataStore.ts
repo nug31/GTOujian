@@ -12,6 +12,8 @@ export interface Exam {
     targetClass?: string;
     isRemedial?: boolean;
     parentExamId?: string;
+    examType?: 'practice' | 'theory';
+    questions?: any[]; // JSON array of questions
 }
 
 export interface Submission {
@@ -85,7 +87,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 imageUrl: item.image_url,
                 targetClass: item.target_class,
                 isRemedial: item.is_remedial,
-                parentExamId: item.parent_exam_id
+                parentExamId: item.parent_exam_id,
+                examType: item.exam_type,
+                questions: item.questions
             }));
             set({ exams: mappedExams });
         }
@@ -146,7 +150,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 image_url: exam.imageUrl,
                 target_class: exam.targetClass === "Semua Kelas" ? null : exam.targetClass,
                 is_remedial: exam.isRemedial || false,
-                parent_exam_id: exam.parentExamId || null
+                parent_exam_id: exam.parentExamId || null,
+                exam_type: exam.examType || 'practice',
+                questions: exam.questions || []
             }]);
 
         if (error) console.error('Error adding exam:', error);
@@ -166,6 +172,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
         if (updatedFields.isRemedial !== undefined) mappedFields.is_remedial = updatedFields.isRemedial;
         if (updatedFields.parentExamId !== undefined) mappedFields.parent_exam_id = updatedFields.parentExamId || null;
+        if (updatedFields.examType !== undefined) mappedFields.exam_type = updatedFields.examType;
+        if (updatedFields.questions !== undefined) mappedFields.questions = updatedFields.questions;
 
         const { error } = await supabase
             .from('exams')
