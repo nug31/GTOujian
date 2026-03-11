@@ -35,6 +35,7 @@ export interface Submission {
         aesthetics: number;
     };
     feedback?: string;
+    answers?: Record<string, string>; // Map of question index or ID to student's answer
 }
 
 export interface Student {
@@ -206,6 +207,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             status: submission.status,
             score: submission.score,
             onshape_link: submission.onshapeLink,
+            answers: submission.answers || null,
         };
 
         // Add optional/new columns dynamically based on presence
@@ -239,6 +241,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (updatedFields.tabSwitches !== undefined) mappedFields.tab_switches = updatedFields.tabSwitches;
         if (updatedFields.criteria) mappedFields.criteria = updatedFields.criteria;
         if (updatedFields.feedback) mappedFields.feedback = updatedFields.feedback;
+        if (updatedFields.answers) mappedFields.answers = updatedFields.answers;
 
         const { error } = await supabase
             .from('submissions')

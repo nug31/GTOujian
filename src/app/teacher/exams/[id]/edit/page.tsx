@@ -24,6 +24,8 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [isRemedial, setIsRemedial] = useState(false);
     const [parentExamId, setParentExamId] = useState("");
+    const [examType, setExamType] = useState<'practice' | 'theory'>('practice');
+    const [questions, setQuestions] = useState<{ text: string }[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +67,8 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
             }
             setIsRemedial(exam.isRemedial || false);
             setParentExamId(exam.parentExamId || "");
+            setExamType(exam.examType || 'practice');
+            setQuestions(exam.questions || []);
         }
     }, [params.id, exams]);
 
@@ -120,7 +124,9 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
             imageUrl: finalImageUrl,
             targetClass: targetClass,
             isRemedial: isRemedial,
-            parentExamId: isRemedial ? parentExamId : undefined
+            parentExamId: isRemedial ? parentExamId : undefined,
+            examType,
+            questions
         });
 
         setIsUploading(false);
@@ -151,8 +157,8 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                 {!saved ? (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-                            <h2 className="text-xl font-bold text-slate-800">Perbarui Detail Soal Praktik Onshape</h2>
-                            <p className="text-sm text-slate-500 mt-1">Ubah informasi blueprint dan instruksi untuk siswa.</p>
+                            <h2 className="text-xl font-bold text-slate-800">Perbarui Detail Ujian</h2>
+                            <p className="text-sm text-slate-500 mt-1">Ubah informasi ujian dan daftar soal untuk siswa.</p>
                         </div>
 
                         <form onSubmit={handleSave} className="p-6 space-y-6">
@@ -221,7 +227,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                             required
                                             value={parentExamId}
                                             onChange={(e) => setParentExamId(e.target.value)}
-                                            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white"
+                                            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white font-medium"
                                         >
                                             <option value="" disabled>Pilih Sumber Ujian</option>
                                             {exams.filter(e => !e.isRemedial && e.id !== params.id).map((e) => (
@@ -231,6 +237,78 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                     </div>
                                 )}
                             </div>
+
+                            <div className="pt-4 border-t border-slate-100">
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Ujian <span className="text-red-500">*</span></label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setExamType('practice')}
+                                        className={`px-4 py-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'practice' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300 text-slate-600'}`}
+                                    >
+                                        <span className="font-bold text-sm">Praktik (CAD)</span>
+                                        <span className="text-[10px] opacity-70">Butuh link Onshape</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExamType('theory')}
+                                        className={`px-4 py-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'theory' ? 'border-emerald-600 bg-emerald-50' : 'border-slate-200 hover:border-slate-300 text-slate-600'}`}
+                                    >
+                                        <span className="font-bold text-sm">Teori / Logika</span>
+                                        <span className="text-[10px] opacity-70">Input teks langsung</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {examType === 'theory' && (
+                                <div className="pt-6 border-t border-slate-100 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-sm font-semibold text-slate-700">Daftar Pertanyaan Esai/Logika</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuestions([...questions, { text: "" }])}
+                                            className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-colors flex items-center gap-1"
+                                        >
+                                            + Tambah Soal
+                                        </button>
+                                    </div>
+                                    
+                                    {questions.length === 0 && (
+                                        <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                                            <p className="text-slate-500 text-xs">Belum ada pertanyaan. Klik tombol di atas untuk menambah.</p>
+                                        </div>
+                                    )}
+
+                                    {questions.map((q, idx) => (
+                                        <div key={idx} className="relative group bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-slate-300 transition-all">
+                                            <div className="flex items-start gap-4">
+                                                <span className="mt-2.5 w-6 h-6 flex-shrink-0 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                    {idx + 1}
+                                                </span>
+                                                <textarea
+                                                    required
+                                                    value={q.text}
+                                                    onChange={(e) => {
+                                                        const newQ = [...questions];
+                                                        newQ[idx].text = e.target.value;
+                                                        setQuestions(newQ);
+                                                    }}
+                                                    placeholder="Tuliskan isi pertanyaan di sini..."
+                                                    className="w-full border-none p-0 outline-none text-sm text-slate-800 resize-none min-h-[60px] focus:ring-0"
+                                                    rows={Math.max(2, q.text.split('\n').length)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setQuestions(questions.filter((_, i) => i !== idx))}
+                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             {/* Upload Gambar Blueprint */}
                             <div className="pt-4 border-t border-slate-100">

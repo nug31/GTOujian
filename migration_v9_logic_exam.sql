@@ -9,8 +9,9 @@ ALTER TABLE exams ADD COLUMN IF NOT EXISTS exam_type TEXT DEFAULT 'practice';
 -- Format JSONB untuk menyimpan array soal pilihan ganda atau pertanyaan teks
 ALTER TABLE exams ADD COLUMN IF NOT EXISTS questions JSONB DEFAULT '[]';
 
--- 3. Tambah kolom `tab_switches` ke tabel `submissions` jika belum ada
+-- 3. Tambah kolom `tab_switches` & `answers` ke tabel `submissions` jika belum ada
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS tab_switches INTEGER DEFAULT 0;
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS answers JSONB DEFAULT '{}';
 
 -- 4. Update data soal yang sudah ada (untuk paket Logika yang dibuat sebelumnya)
 UPDATE exams 

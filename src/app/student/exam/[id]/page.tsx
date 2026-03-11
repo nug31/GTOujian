@@ -43,6 +43,10 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
+    // Anti-Cheat (Tab Switching) & Theory Answers
+    const [tabSwitches, setTabSwitches] = useState(0);
+    const [answers, setAnswers] = useState<Record<string, string>>({});
+
     // Set duration and handle persistence
     useEffect(() => {
         if (exam) {
@@ -164,7 +168,6 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         };
     }, [examStarted, submitted, userInfo?.nisn, userInfo?.name, userInfo?.class, exam?.id]);
 
-
     // Disable right-click and common cheat shortcuts on exam page
     useEffect(() => {
         if (!examStarted || submitted) return;
@@ -185,6 +188,26 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [examStarted, submitted]);
+
+    // Anti-Cheat: Detect Tab Switching / Visibility Change
+    useEffect(() => {
+        if (!examStarted || submitted || !exam) return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setTabSwitches(prev => prev + 1);
+                // Optional: Play alert sound or show subtle warning if needed
+            } else {
+                // When coming back to tab, show alert if it's a theory/logic test
+                if (exam.examType === 'theory') {
+                    setLiveWarning("Sistem mendeteksi Anda meninggalkan halaman ujian. Aktivitas ini dicatat sebagai upaya pelanggaran.");
+                }
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [examStarted, submitted, exam?.examType]);
 
     // Countdown Audio & Visual Alerts
     useEffect(() => {
@@ -252,9 +275,13 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         e.preventDefault();
         if (isSubmitting || submitted) return;
 
-        if (!onshapeLink.includes("onshape.com")) {
+        if (exam?.examType === 'practice' && !onshapeLink.includes("onshape.com")) {
             alert("Masukkan link dokumen Onshape yang valid.");
             return;
+        }
+
+        if (exam?.examType === 'theory' && Object.keys(answers).length === 0) {
+            if (!confirm("Anda belum mengisi jawaban. Kirim lembar kosong?")) return;
         }
 
         setIsSubmitting(true);
@@ -269,9 +296,11 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 submitTime: new Date().toLocaleString(),
                 status: 'pending',
                 score: null,
-                onshapeLink: onshapeLink,
+                onshapeLink: exam.examType === 'theory' ? 'Logic/Theory Test (No Link)' : onshapeLink,
                 isLate: timeLeft <= 0,
-                studentClass: userInfo?.class
+                studentClass: userInfo?.class,
+                tabSwitches: tabSwitches,
+                answers: exam.examType === 'theory' ? answers : undefined
             });
 
             if (result.success) {
@@ -408,11 +437,11 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                 <ul className="space-y-3.5">
                                     {[
                                         "Kerjakan soal secara mandiri tanpa bantuan eksternal.",
-                                        "Buka lembar kerja Onshape di tab baru secara terpisah.",
-                                        "Gunakan Onshape untuk menyelesaikan tugas desain 3D.",
+                                        exam.examType === 'theory' ? "Dilarang membuka tab baru atau mencari jawaban di internet." : "Buka lembar kerja Onshape di tab baru secara terpisah.",
+                                        exam.examType === 'theory' ? "Pastikan seluruh pertanyaan terjawab di kolom yang tersedia." : "Gunakan Onshape untuk menyelesaikan tugas desain 3D.",
                                         "Dilarang menutup atau me-refresh halaman penjagaan ini.",
-                                        "Lampirkan link dokumen jawaban Anda sebelum timer habis.",
-                                        "Pastikan link sharing Onshape sudah aktif sebelum dikirim.",
+                                        exam.examType === 'theory' ? "Peringatan akan muncul otomatis jika Anda pindah tab." : "Lampirkan link dokumen jawaban Anda sebelum timer habis.",
+                                        exam.examType === 'theory' ? "Klik tombol kirim setelah selesai mengerjakan." : "Pastikan link sharing Onshape sudah aktif sebelum dikirim.",
                                     ].map((rule, i) => (
                                         <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
                                             <span className="w-6 h-6 bg-slate-800 border border-slate-700 rounded-full text-[10px] font-bold text-slate-400 flex items-center justify-center flex-shrink-0 shadow-sm">{i + 1}</span>
@@ -487,7 +516,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                 <div className="flex-1 flex flex-col p-4 lg:p-6 lg:border-r border-slate-800/60 overflow-y-auto min-h-[600px] lg:min-h-0">
                     <div className="mb-4">
                         <h1 className="text-2xl font-bold text-white mb-1.5 font-outfit tracking-wide">{exam.title}</h1>
-                        <p className="text-slate-400 text-sm max-w-2xl leading-relaxed">
+                        <p className="text-slate-400 text-sm max-w-2xl leading-relaxed whitespace-pre-wrap">
                             {exam.description}
                         </p>
                     </div>
@@ -500,17 +529,25 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                     <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
                                     Live Blueprint Viewer
                                 </span>
-                                <span className="text-xs text-slate-500 font-mono">Render: {exam.imageUrl ? 'Active' : 'Missing'}</span>
+                                <span className="text-xs text-slate-500 font-mono">Render: {exam.imageUrl ? 'Active' : 'N/A'}</span>
                             </div>
 
                             <div className="relative flex-1 bg-[#ffffff] rounded-xl overflow-hidden shadow-inner flex items-center justify-center border border-slate-700">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={exam.imageUrl || "/image.png"}
-                                    alt={`Blueprint Soal ${exam.title}`}
-                                    className="w-full h-full object-contain mix-blend-multiply"
-                                    style={{ filter: 'contrast(1.05) brightness(0.98)' }}
-                                />
+                                {exam.imageUrl ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img
+                                        src={exam.imageUrl}
+                                        alt={`Blueprint Soal ${exam.title}`}
+                                        className="w-full h-full object-contain mix-blend-multiply"
+                                        style={{ filter: 'contrast(1.05) brightness(0.98)' }}
+                                    />
+                                ) : (
+                                    <div className="text-slate-400 text-center p-8">
+                                        <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                        <p className="text-sm font-medium">Referensi Visual Tidak Tersedia</p>
+                                        <p className="text-xs mt-1">Gunakan deskripsi teks untuk mengerjakan soal.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -526,57 +563,98 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                                 className="flex flex-col h-full"
                             >
                                 <div className="mb-8">
-                                    <h2 className="text-xl font-bold text-white mb-2 font-outfit">Lembar Pengumpulan</h2>
-                                    <p className="text-slate-400 text-sm leading-relaxed">Pintu terakhir mesin penjawab. Tautkan cetak biru hasil rancangan 3D Anda di sini.</p>
+                                    <h2 className="text-xl font-bold text-white mb-2 font-outfit">Lembar Jawaban</h2>
+                                    <p className="text-slate-400 text-sm leading-relaxed">
+                                        {exam.examType === 'theory' 
+                                          ? 'Silakan isi jawaban Anda untuk pertanyaan logika/teori di bawah ini.' 
+                                          : 'Pintu terakhir mesin penjawab. Tautkan cetak biru hasil rancangan 3D Anda di sini.'}
+                                    </p>
                                 </div>
 
-                                <div className="bg-blue-900/20 border border-blue-500/20 rounded-xl p-5 mb-8 backdrop-blur-md">
-                                    <h3 className="flex items-center text-sm font-semibold text-blue-300 mb-3 tracking-wide">
-                                        <Info className="w-4 h-4 mr-2" /> Instruksi Pengiriman
-                                    </h3>
-                                    <ol className="list-decimal list-inside text-sm text-blue-100/80 space-y-2.5 ml-1 marker:text-blue-500">
-                                        <li>Buka platform <strong>Onshape</strong> di lingkungan kerja baru.</li>
-                                        <li>Lakukan perakitan 3D berdasarkan blueprint teknis.</li>
-                                        <li>Tekan <strong>Share</strong> / Bagikan pada menu atas.</li>
-                                        <li>Pastikan mode <strong>Link Sharing</strong> diaktifkan.</li>
-                                        <li>Injeksi link publik ke dalam modul form di bawah.</li>
-                                    </ol>
-                                    <div className="mt-5 flex">
-                                        <a
-                                            href={isAndroid ? "intent://cad.onshape.com#Intent;scheme=https;package=com.onshape.app;end" : "https://cad.onshape.com"}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs bg-blue-600/20 text-blue-300 border border-blue-500/30 px-4 py-2 rounded-lg font-medium hover:bg-blue-600/40 hover:text-white transition-all flex items-center shadow-[0_0_10px_rgba(59,130,246,0.1)]"
-                                        >
-                                            {isAndroid ? "Jalankan Aplikasi Onshape" : "Akses Ruang Onshape"} <ExternalLink className="ml-2 w-3.5 h-3.5" />
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <form onSubmit={handleSubmit} className="mt-auto pt-4 border-t border-slate-800">
-                                    <div className="mb-6">
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                                            Tautan (Link) Dokumen Onshape
-                                        </label>
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <LinkIcon className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                                {exam.examType === 'theory' ? (
+                                    <div className="space-y-6 mb-8 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                                        {exam.questions && exam.questions.length > 0 ? (
+                                            exam.questions.map((q: any, idx: number) => (
+                                                <div key={idx} className="bg-slate-900/40 border border-slate-800 rounded-xl p-5 shadow-sm">
+                                                    <p className="text-slate-200 text-sm font-bold mb-3 flex items-start gap-2">
+                                                        <span className="text-indigo-400 font-mono">Q{idx + 1}.</span>
+                                                        {q.text}
+                                                    </p>
+                                                    <textarea
+                                                        value={answers[idx] || ""}
+                                                        onChange={(e) => setAnswers(prev => ({...prev, [idx]: e.target.value}))}
+                                                        placeholder="Tulis jawaban Anda di sini..."
+                                                        className="w-full bg-slate-950/50 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-all resize-none min-h-[100px]"
+                                                    />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="bg-amber-950/20 border border-amber-900/50 rounded-xl p-6 text-center">
+                                                <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                                                <p className="text-amber-200 text-xs font-medium">Soal belum dikonfigurasi oleh guru.</p>
                                             </div>
-                                            <input
-                                                type="url"
-                                                required
-                                                value={onshapeLink}
-                                                onChange={(e) => setOnshapeLink(e.target.value)}
-                                                className="block w-full pl-10 pr-3 py-3.5 bg-slate-900/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm transition-all text-white placeholder-slate-600 outline-none"
-                                                placeholder="https://cad.onshape.com/documents/..."
-                                            />
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="bg-blue-900/20 border border-blue-500/20 rounded-xl p-5 mb-8 backdrop-blur-md">
+                                        <h3 className="flex items-center text-sm font-semibold text-blue-300 mb-3 tracking-wide">
+                                            <Info className="w-4 h-4 mr-2" /> Instruksi Pengiriman
+                                        </h3>
+                                        <ol className="list-decimal list-inside text-sm text-blue-100/80 space-y-2.5 ml-1 marker:text-blue-500">
+                                            <li>Buka platform <strong>Onshape</strong> di lingkungan kerja baru.</li>
+                                            <li>Lakukan perakitan 3D berdasarkan blueprint teknis.</li>
+                                            <li>Tekan <strong>Share</strong> / Bagikan pada menu atas.</li>
+                                            <li>Pastikan mode <strong>Link Sharing</strong> diaktifkan.</li>
+                                            <li>Injeksi link publik ke dalam modul form di bawah.</li>
+                                        </ol>
+                                        <div className="mt-5 flex">
+                                            <a
+                                                href={isAndroid ? "intent://cad.onshape.com#Intent;scheme=https;package=com.onshape.app;end" : "https://cad.onshape.com"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs bg-blue-600/20 text-blue-300 border border-blue-500/30 px-4 py-2 rounded-lg font-medium hover:bg-blue-600/40 hover:text-white transition-all flex items-center shadow-[0_0_10px_rgba(59,130,246,0.1)]"
+                                            >
+                                                {isAndroid ? "Jalankan Aplikasi Onshape" : "Akses Ruang Onshape"} <ExternalLink className="ml-2 w-3.5 h-3.5" />
+                                            </a>
                                         </div>
                                     </div>
+                                )}
 
-                                    <div className="bg-amber-950/20 rounded-lg p-3.5 flex items-start mb-6 border border-amber-500/20">
-                                        <AlertCircle className="w-4 h-4 text-amber-500 mr-2.5 mt-0.5 flex-shrink-0" />
-                                        <p className="text-xs text-amber-200/80 leading-relaxed">Sistem tidak dapat menilai tautan privat. Pastikan mode pembagian publik telah diaktifkan, atau risiko pengurangan poin berlaku.</p>
-                                    </div>
+                                <form onSubmit={handleSubmit} className="mt-auto pt-4 border-t border-slate-800">
+                                    {exam.examType === 'practice' && (
+                                        <div className="mb-6">
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                Tautan (Link) Dokumen Onshape
+                                            </label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <LinkIcon className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                                                </div>
+                                                <input
+                                                    type="url"
+                                                    required
+                                                    value={onshapeLink}
+                                                    onChange={(e) => setOnshapeLink(e.target.value)}
+                                                    className="block w-full pl-10 pr-3 py-3.5 bg-slate-900/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm transition-all text-white placeholder-slate-600 outline-none"
+                                                    placeholder="https://cad.onshape.com/documents/..."
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {exam.examType === 'practice' && (
+                                        <div className="bg-amber-950/20 rounded-lg p-3.5 flex items-start mb-6 border border-amber-500/20">
+                                            <AlertCircle className="w-4 h-4 text-amber-500 mr-2.5 mt-0.5 flex-shrink-0" />
+                                            <p className="text-xs text-amber-200/80 leading-relaxed">Sistem tidak dapat menilai tautan privat. Pastikan mode pembagian publik telah diaktifkan, atau risiko pengurangan poin berlaku.</p>
+                                        </div>
+                                    )}
+
+                                    {tabSwitches > 0 && (
+                                        <div className="bg-red-950/20 rounded-lg p-3.5 flex items-start mb-6 border border-red-500/20">
+                                            <ShieldAlert className="w-4 h-4 text-red-500 mr-2.5 mt-0.5 flex-shrink-0" />
+                                            <p className="text-xs text-red-200/80 font-bold">Terdeteksi {tabSwitches} kali perpindahan tab. Tindakan ini telah dilaporkan.</p>
+                                        </div>
+                                    )}
 
                                     {timeLeft <= 0 && (
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-950/30 rounded-lg p-3.5 flex items-start mb-6 border border-red-500/30">

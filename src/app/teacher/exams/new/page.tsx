@@ -22,6 +22,8 @@ export default function NewExamPage() {
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [isRemedial, setIsRemedial] = useState(false);
     const [parentExamId, setParentExamId] = useState("");
+    const [examType, setExamType] = useState<'practice' | 'theory'>('practice');
+    const [questions, setQuestions] = useState<{ text: string }[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { exams, addExam, fetchAvailableClasses, fetchExams } = useAppStore();
 
@@ -84,7 +86,9 @@ export default function NewExamPage() {
             imageUrl: finalImageUrl,
             targetClass: targetClass,
             isRemedial: isRemedial,
-            parentExamId: isRemedial ? parentExamId : undefined
+            parentExamId: isRemedial ? parentExamId : undefined,
+            examType,
+            questions
         });
 
         setIsUploading(false);
@@ -118,8 +122,8 @@ export default function NewExamPage() {
                 {!saved ? (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 overflow-hidden">
                         <div className="p-8 border-b border-slate-100 bg-slate-50/50">
-                            <h2 className="text-xl font-bold text-slate-900 font-outfit">Detail Spesifikasi Praktik</h2>
-                            <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">Lengkapi properti metadata ujian, batas waktu, dan unggah konfigurasi visual (blueprint) untuk referensi pengerjaan siswa.</p>
+                            <h2 className="text-xl font-bold text-slate-900 font-outfit">Detail Spesifikasi Ujian</h2>
+                            <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">Lengkapi properti metadata ujian, batas waktu, dan konfigurasi soal (praktik Onshape atau teori esai).</p>
                         </div>
 
                         <form onSubmit={handleSave} className="p-8 space-y-8">
@@ -198,6 +202,79 @@ export default function NewExamPage() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Exam Type Selection */}
+                            <div className="pt-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-3 group-focus-within:text-indigo-600 transition-colors">Tipe Ujian <span className="text-red-500">*</span></label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setExamType('practice')}
+                                        className={`px-5 py-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'practice' ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-500/5' : 'border-slate-100 bg-slate-50 hover:border-slate-200 text-slate-600'}`}
+                                    >
+                                        <span className="font-bold text-sm font-outfit">Praktik (CAD)</span>
+                                        <span className="text-[10px] uppercase font-bold tracking-widest opacity-50">Blueprint CAD</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExamType('theory')}
+                                        className={`px-5 py-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'theory' ? 'border-emerald-600 bg-emerald-50 ring-4 ring-emerald-500/5' : 'border-slate-100 bg-slate-50 hover:border-slate-200 text-slate-600'}`}
+                                    >
+                                        <span className="font-bold text-sm font-outfit">Tulis / Logika</span>
+                                        <span className="text-[10px] uppercase font-bold tracking-widest opacity-50">Soal Isian</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {examType === 'theory' && (
+                                <div className="pt-6 border-t border-slate-100 space-y-5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-sm font-bold text-slate-700">Daftar Pertanyaan Esai</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuestions([...questions, { text: "" }])}
+                                            className="text-[11px] font-bold text-indigo-600 hover:text-white hover:bg-indigo-600 bg-white px-4 py-2 rounded-xl border-2 border-indigo-100 hover:border-indigo-600 transition-all uppercase tracking-wider flex items-center gap-1.5 shadow-sm"
+                                        >
+                                            + Tambah Baris Soal
+                                        </button>
+                                    </div>
+
+                                    {questions.length === 0 && (
+                                        <div className="text-center py-10 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200">
+                                            <p className="text-slate-400 text-xs font-medium">Belum ada pertanyaan yang dibuat.</p>
+                                        </div>
+                                    )}
+
+                                    {questions.map((q, idx) => (
+                                        <div key={idx} className="relative group bg-slate-50/30 border border-slate-200 rounded-2xl p-5 hover:border-indigo-200 hover:bg-white transition-all shadow-sm">
+                                            <div className="flex items-start gap-4">
+                                                <div className="mt-2 w-7 h-7 flex-shrink-0 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-xs font-bold text-slate-400 font-mono">
+                                                    {idx + 1}
+                                                </div>
+                                                <textarea
+                                                    required
+                                                    value={q.text}
+                                                    onChange={(e) => {
+                                                        const newQ = [...questions];
+                                                        newQ[idx].text = e.target.value;
+                                                        setQuestions(newQ);
+                                                    }}
+                                                    placeholder="Tuliskan isi pertanyaan di sini..."
+                                                    className="w-full bg-transparent border-none p-0 outline-none text-sm text-slate-800 font-medium resize-none min-h-[60px] focus:ring-0 leading-relaxed"
+                                                    rows={Math.max(2, q.text.split('\n').length)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setQuestions(questions.filter((_, i) => i !== idx))}
+                                                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             <div className="pt-2">
                                 <label className="block text-sm font-bold text-slate-700 mb-3">Gambar Blueprint Referensi <span className="text-slate-400 font-normal ml-1">(Sangat disarankan untuk ujian praktik)</span></label>
