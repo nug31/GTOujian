@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Wrench, CheckCircle2, ChevronRight, LogOut, FileText, Search, Clock, AlertCircle, Edit, Trash2, RotateCw } from "lucide-react";
+import { Wrench, CheckCircle2, ChevronRight, LogOut, FileText, Search, Clock, AlertCircle, Edit, Trash2, RotateCw, CheckSquare, Square, X, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
 import { useAppStore, Submission } from "@/lib/dataStore";
@@ -16,7 +16,21 @@ export default function TeacherDashboard() {
     const [searchQuery, setSearchQuery] = useState("");
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [teacherName, setTeacherName] = useState("Bpk. Ahmad Riyadi, S.T.");
-    const { submissions, students, fetchSubmissions, deleteSubmission, isLoading } = useAppStore();
+    const { submissions, students, fetchSubmissions, deleteSubmission, bulkUpdateSubmissions, isLoading } = useAppStore();
+    
+    // Bulk selection state
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+    const [isBulkSaving, setIsBulkSaving] = useState(false);
+
+    // Bulk grading criteria state
+    const [bulkDimensi, setBulkDimensi] = useState(40);
+    const [bulkFeatures, setBulkFeatures] = useState(40);
+    const [bulkKerapian, setBulkKerapian] = useState(20);
+    const [bulkFeedback, setBulkFeedback] = useState("Hasil pengerjaan sudah sesuai dengan blueprint referensi.");
+
+    const totalBulkScore = Math.min(100, Math.max(0, bulkDimensi + bulkFeatures + bulkKerapian));
+
 
     useEffect(() => {
         const info = localStorage.getItem("user_info");
@@ -55,6 +69,44 @@ export default function TeacherDashboard() {
             sub.nis.includes(searchQuery);
         return (filter === "missing" ? false : matchesFilter) && matchesClass && matchesSearch;
     });
+
+    const handleSelectAll = () => {
+        if (selectedIds.length === filteredSubmissions.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filteredSubmissions.map(s => s.id));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleBulkGrade = async () => {
+        setIsBulkSaving(true);
+        try {
+            await bulkUpdateSubmissions(selectedIds, {
+                status: 'graded',
+                score: totalBulkScore,
+                criteria: {
+                    dimension: bulkDimensi,
+                    efficiency: bulkFeatures,
+                    aesthetics: bulkKerapian
+                },
+                feedback: bulkFeedback
+            });
+            setIsBulkModalOpen(false);
+            setSelectedIds([]);
+            alert(`Berhasil menilai ${selectedIds.length} siswa sekaligus.`);
+        } catch (error) {
+            console.error("Bulk grade failed:", error);
+            alert("Gagal melakukan penilaian masal.");
+        } finally {
+            setIsBulkSaving(false);
+        }
+    };
 
     // If filter is "missing", we need to combine roster with submissions
     const displayData = filter === "missing" ?
@@ -352,6 +404,19 @@ export default function TeacherDashboard() {
                     <table className="min-w-full divide-y divide-slate-200/80">
                         <thead className="bg-slate-50/80">
                             <tr>
+                                <th scope="col" className="px-6 py-3 text-left">
+                                    <button
+                                        onClick={handleSelectAll}
+                                        className="p-1 rounded hover:bg-slate-200 transition-colors"
+                                        title="Pilih Semua"
+                                    >
+                                        {selectedIds.length === filteredSubmissions.length && filteredSubmissions.length > 0 ? (
+                                            <CheckSquare className="w-5 h-5 text-indigo-600" />
+                                        ) : (
+                                            <Square className="w-5 h-5 text-slate-400" />
+                                        )}
+                                    </button>
+                                </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                                     Siswa
                                 </th>
@@ -384,8 +449,20 @@ export default function TeacherDashboard() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.05 }}
                                         key={sub.id}
-                                        className="hover:bg-slate-50 transition-colors group"
+                                        className={`hover:bg-slate-50 transition-colors group ${selectedIds.includes(sub.id) ? 'bg-indigo-50/30' : ''}`}
                                     >
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <button
+                                                onClick={() => toggleSelect(sub.id)}
+                                                className="p-1 rounded hover:bg-indigo-100 transition-colors"
+                                            >
+                                                {selectedIds.includes(sub.id) ? (
+                                                    <CheckSquare className="w-5 h-5 text-indigo-600" />
+                                                ) : (
+                                                    <Square className="w-5 h-5 text-slate-300" />
+                                                )}
+                                            </button>
+                                        </td>
                                         <td className="px-6 py-5 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shadow-sm">
@@ -483,6 +560,158 @@ export default function TeacherDashboard() {
                     </table>
                 </div >
             </main >
+
+            {/* Selection Floating Bar */}
+            {selectedIds.length > 0 && (
+                <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 100, opacity: 0 }}
+                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4"
+                >
+                    <div className="bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700/50 p-4 flex items-center justify-between backdrop-blur-md">
+                        <div className="flex items-center gap-4 ml-2">
+                            <div className="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                                {selectedIds.length}
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold">Siswa Terpilih</p>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Aksi Masal Tersedia</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setSelectedIds([])}
+                                className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors"
+                            >
+                                Batalkan
+                            </button>
+                            <button
+                                onClick={() => setIsBulkModalOpen(true)}
+                                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 active:scale-95"
+                            >
+                                <CheckSquare className="w-4 h-4" />
+                                Nilai Masal ({selectedIds.length})
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Bulk Grade Modal */}
+            {isBulkModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        onClick={() => setIsBulkModalOpen(false)}
+                    />
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200"
+                    >
+                        {/* Modal Header */}
+                        <div className="bg-slate-50 px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 font-outfit">Nilai Masal</h2>
+                                <p className="text-slate-500 text-sm mt-0.5 font-medium">Beri nilai untuk {selectedIds.length} siswa sekaligus.</p>
+                            </div>
+                            <button
+                                onClick={() => setIsBulkModalOpen(false)}
+                                className="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 transition-all shadow-sm"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
+                            {/* Rubric Item 1 */}
+                            <div>
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="text-sm font-bold text-slate-700">1. Kesesuaian Dimensi (Maks 40)</label>
+                                    <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg text-xs font-black">{bulkDimensi}</span>
+                                </div>
+                                <input
+                                    type="range" min="0" max="40" value={bulkDimensi}
+                                    onChange={(e) => setBulkDimensi(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                />
+                                <div className="flex justify-between text-[10px] uppercase tracking-tighter font-bold text-slate-400 mt-2"><span>Minimal</span><span>Maksimal</span></div>
+                            </div>
+
+                            {/* Rubric Item 2 */}
+                            <div>
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="text-sm font-bold text-slate-700">2. Feature Tree & Efisiensi (Maks 40)</label>
+                                    <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg text-xs font-black">{bulkFeatures}</span>
+                                </div>
+                                <input
+                                    type="range" min="0" max="40" value={bulkFeatures}
+                                    onChange={(e) => setBulkFeatures(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                />
+                                <div className="flex justify-between text-[10px] uppercase tracking-tighter font-bold text-slate-400 mt-2"><span>Minimal</span><span>Maksimal</span></div>
+                            </div>
+
+                            {/* Rubric Item 3 */}
+                            <div>
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="text-sm font-bold text-slate-700">3. Kerapian & Estetika (Maks 20)</label>
+                                    <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg text-xs font-black">{bulkKerapian}</span>
+                                </div>
+                                <input
+                                    type="range" min="0" max="20" value={bulkKerapian}
+                                    onChange={(e) => setBulkKerapian(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                />
+                                <div className="flex justify-between text-[10px] uppercase tracking-tighter font-bold text-slate-400 mt-2"><span>Minimal</span><span>Maksimal</span></div>
+                            </div>
+
+                            <div className="pt-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-3">Feedback Umum (Tampil di semua siswa)</label>
+                                <textarea
+                                    rows={3}
+                                    value={bulkFeedback}
+                                    onChange={(e) => setBulkFeedback(e.target.value)}
+                                    className="w-full border border-slate-200 rounded-2xl p-4 text-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none shadow-inner"
+                                    placeholder="Contoh: Sangat bagus, pertahankan..."
+                                />
+                            </div>
+
+                            {/* Total Display */}
+                            <div className="bg-indigo-600 rounded-2xl p-6 text-white flex items-center justify-between shadow-xl shadow-indigo-600/20">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Akumulasi Skor Masal</p>
+                                    <p className="text-sm font-medium">Nilai akan diberikan ke {selectedIds.length} siswa</p>
+                                </div>
+                                <div className="text-4xl font-black font-outfit leading-none">{totalBulkScore}</div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="bg-slate-50 px-8 py-6 border-t border-slate-100">
+                            <button
+                                onClick={handleBulkGrade}
+                                disabled={isBulkSaving}
+                                className="w-full bg-indigo-600 hover:bg-slate-900 disabled:bg-slate-300 text-white font-bold py-4 rounded-2xl shadow-xl shadow-indigo-600/20 active:scale-95 transition-all flex items-center justify-center gap-3 text-lg"
+                            >
+                                {isBulkSaving ? (
+                                    <>
+                                        <Loader2 className="w-6 h-6 animate-spin" /> Sedang Memproses...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-6 h-6" /> Terapkan & Simpan Nilai
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div >
     );
 }

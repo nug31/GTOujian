@@ -57,6 +57,7 @@ interface AppState {
     deleteExam: (id: string) => Promise<void>;
     addSubmission: (submission: Omit<Submission, 'id'>) => Promise<{ success: boolean; error?: string }>;
     updateSubmission: (id: string, submission: Partial<Submission>) => Promise<void>;
+    bulkUpdateSubmissions: (ids: string[], submission: Partial<Submission>) => Promise<void>;
     deleteSubmission: (id: string) => Promise<void>;
     fetchAvailableClasses: () => Promise<{ data: string[] | null, error: any }>;
     subscribeSubmissions: () => () => void;
@@ -207,11 +208,11 @@ export const useAppStore = create<AppState>((set, get) => ({
             status: submission.status,
             score: submission.score,
             onshape_link: submission.onshapeLink,
-            answers: submission.answers || null,
         };
 
         // Add optional/new columns dynamically based on presence
         // This prevents 'column not found' errors if schema isn't fully updated
+        if (submission.answers !== undefined) submissionData.answers = submission.answers;
         if (submission.studentClass) submissionData.student_class = submission.studentClass;
         if (submission.isLate !== undefined) submissionData.is_late = submission.isLate;
         if (submission.tabSwitches !== undefined) submissionData.tab_switches = submission.tabSwitches;
@@ -249,6 +250,22 @@ export const useAppStore = create<AppState>((set, get) => ({
             .eq('id', id);
 
         if (error) console.error('Error updating submission:', error);
+        else await get().fetchSubmissions();
+    },
+
+    bulkUpdateSubmissions: async (ids, updatedFields) => {
+        const mappedFields: Record<string, unknown> = {};
+        if (updatedFields.status) mappedFields.status = updatedFields.status;
+        if (updatedFields.score !== undefined) mappedFields.score = updatedFields.score;
+        if (updatedFields.criteria) mappedFields.criteria = updatedFields.criteria;
+        if (updatedFields.feedback) mappedFields.feedback = updatedFields.feedback;
+
+        const { error } = await supabase
+            .from('submissions')
+            .update(mappedFields)
+            .in('id', ids);
+
+        if (error) console.error('Error bulk updating submissions:', error);
         else await get().fetchSubmissions();
     },
     deleteSubmission: async (id) => {
