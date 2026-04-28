@@ -25,6 +25,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const [isRemedial, setIsRemedial] = useState(false);
     const [parentExamId, setParentExamId] = useState("");
     const [examType, setExamType] = useState<'practice' | 'theory'>('practice');
+    const [isUnlimitedDuration, setIsUnlimitedDuration] = useState(false);
     const [questions, setQuestions] = useState<{ text: string }[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
@@ -69,6 +70,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
             setParentExamId(exam.parentExamId || "");
             setExamType(exam.examType || 'practice');
             setQuestions(exam.questions || []);
+            setIsUnlimitedDuration(exam.duration === "Tanpa Batas Waktu");
         }
     }, [params.id, exams]);
 
@@ -120,7 +122,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
         await updateExam(params.id, {
             title,
             description,
-            duration: `${duration} Menit`,
+            duration: isUnlimitedDuration ? "Tanpa Batas Waktu" : `${duration} Menit`,
             imageUrl: finalImageUrl,
             targetClass: targetClass,
             isRemedial: isRemedial,
@@ -183,11 +185,27 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Durasi Pengerjaan (Menit) <span className="text-red-500">*</span></label>
+                            <div className="group">
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="block text-sm font-semibold text-slate-700">Durasi Pengerjaan (Menit) <span className="text-red-500">*</span></label>
+                                    <label className="flex items-center gap-2 cursor-pointer group/check">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={isUnlimitedDuration} 
+                                            onChange={(e) => setIsUnlimitedDuration(e.target.checked)}
+                                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all"
+                                        />
+                                        <span className="text-xs font-bold text-slate-500 group-hover/check:text-indigo-600 transition-colors">Tanpa Batas Waktu</span>
+                                    </label>
+                                </div>
                                 <input
-                                    required type="number" min="10" value={duration} onChange={(e) => setDuration(e.target.value)}
-                                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm"
+                                    required={!isUnlimitedDuration} 
+                                    type="number" 
+                                    min="10" 
+                                    value={duration} 
+                                    onChange={(e) => setDuration(e.target.value)}
+                                    disabled={isUnlimitedDuration}
+                                    className={`w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm ${isUnlimitedDuration ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''}`}
                                 />
                             </div>
 

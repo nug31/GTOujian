@@ -16,7 +16,8 @@ export default function TeacherDashboard() {
     const [searchQuery, setSearchQuery] = useState("");
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [teacherName, setTeacherName] = useState("Bpk. Ahmad Riyadi, S.T.");
-    const { submissions, students, fetchSubmissions, deleteSubmission, bulkUpdateSubmissions, isLoading } = useAppStore();
+    const { exams, submissions, students, fetchExams, fetchSubmissions, deleteSubmission, bulkUpdateSubmissions, isLoading } = useAppStore();
+    const [examFilter, setExamFilter] = useState<string>("all");
     
     // Bulk selection state
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -38,6 +39,7 @@ export default function TeacherDashboard() {
             const parsed = JSON.parse(info);
             if (parsed.role === "teacher") setTeacherName(parsed.name);
         }
+        fetchExams();
         fetchSubmissions();
         fetchClasses();
 
@@ -114,20 +116,30 @@ export default function TeacherDashboard() {
             const matchesClass = classFilter === "all" || s.class === classFilter;
             const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 s.nisn.includes(searchQuery);
-            const hasSubmitted = submissions.some(sub => sub.nis === s.nisn);
-            return matchesClass && matchesSearch && !hasSubmitted;
+            
+            // If exam filter is specified, check if student submitted THAT exam
+            // Otherwise, check if they submitted ANY exam
+            const hasSubmitted = examFilter === "all" 
+                ? submissions.some(sub => sub.nis === s.nisn)
+                : submissions.some(sub => sub.nis === s.nisn && sub.examId === examFilter);
+
+            // If exam filter is specified, only show students from the target class of that exam
+            const currentExam = exams.find(e => e.id === examFilter);
+            const matchesExamTargetClass = !currentExam || !currentExam.targetClass || currentExam.targetClass === "Semua Kelas" || s.class === currentExam.targetClass;
+
+            return matchesClass && matchesSearch && !hasSubmitted && matchesExamTargetClass;
         }).map(s => ({
-            id: `missing-${s.nisn}`,
+            id: `missing-${s.nisn}-${examFilter}`,
             studentName: s.name,
             nis: s.nisn,
             studentClass: s.class,
-            examTitle: "-",
+            examTitle: examFilter !== "all" ? (exams.find(e => e.id === examFilter)?.title || "-") : "-",
             submitTime: "-",
             status: "missing" as const,
             score: null,
             onshapeLink: "",
             isLate: false
-        })) : filteredSubmissions;
+        })) : filteredSubmissions.filter(sub => examFilter === "all" || sub.examId === examFilter);
 
     const formatDateTime = (dateStr: string) => {
         try {
@@ -213,9 +225,10 @@ export default function TeacherDashboard() {
     // Filter for statistics (ignores the all/pending/graded status filter)
     const statsFiltered = submissions.filter((sub) => {
         const matchesClass = classFilter === "all" || sub.studentClass === classFilter;
+        const matchesExam = examFilter === "all" || sub.examId === examFilter;
         const matchesSearch = sub.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             sub.nis.includes(searchQuery);
-        return matchesClass && matchesSearch;
+        return matchesClass && matchesExam && matchesSearch;
     });
 
     const pendingCount = statsFiltered.filter(s => s.status === 'pending').length;
@@ -227,7 +240,11 @@ export default function TeacherDashboard() {
         const matchesClass = classFilter === "all" || s.class === classFilter;
         const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             s.nisn.includes(searchQuery);
-        return matchesClass && matchesSearch;
+        
+        const currentExam = exams.find(e => e.id === examFilter);
+        const matchesExamTargetClass = !currentExam || !currentExam.targetClass || currentExam.targetClass === "Semua Kelas" || s.class === currentExam.targetClass;
+        
+        return matchesClass && matchesSearch && matchesExamTargetClass;
     });
     const notSubmittedCount = totalStudentsInClass.filter(s => !submittedNis.has(s.nisn)).length;
 
@@ -370,11 +387,21 @@ export default function TeacherDashboard() {
                         <select
                             value={classFilter}
                             onChange={(e) => setClassFilter(e.target.value)}
-                            className="w-full sm:w-40 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                            className="w-full sm:w-32 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                         >
                             <option value="all">Semua Kelas</option>
                             {availableClasses.map(c => (
                                 <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={examFilter}
+                            onChange={(e) => setExamFilter(e.target.value)}
+                            className="w-full sm:w-48 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all truncate"
+                        >
+                            <option value="all">Semua Paket Soal</option>
+                            {exams.map(e => (
+                                <option key={e.id} value={e.id}>{e.title}</option>
                             ))}
                         </select>
                         <div className="relative flex-1 sm:w-64 group hidden sm:block">

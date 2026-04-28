@@ -36,6 +36,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     }, [exam, fetchExams]);
 
     const [timeLeft, setTimeLeft] = useState(7200);
+    const [isUnlimited, setIsUnlimited] = useState(false);
     const [onshapeLink, setOnshapeLink] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [countdownMessage, setCountdownMessage] = useState<string | null>(null);
@@ -50,49 +51,54 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
     // Set duration and handle persistence
     useEffect(() => {
         if (exam) {
-            let totalSeconds = 7200; // Default 2 hours
             const durationStr = exam.duration.toLowerCase();
-            const num = parseInt(durationStr.replace(/[^0-9]/g, '')) || 120; // Extract number
-
-            if (durationStr.includes('jam')) {
-                totalSeconds = num * 3600; // e.g. "2 Jam" -> 7200 sec
-            } else if (durationStr.includes('menit')) {
-                totalSeconds = num * 60; // e.g. "120 Menit" -> 7200 sec
+            if (durationStr.includes('tanpa batas waktu')) {
+                setIsUnlimited(true);
+                setTimeLeft(999999); // Dummy large value
+                setExamStarted(true); // Pre-start logic for unlimited if needed
             } else {
-                totalSeconds = num * 60; // Fallback to minutes
-            }
+                let totalSeconds = 7200; // Default 2 hours
+                const num = parseInt(durationStr.replace(/[^0-9]/g, '')) || 120; // Extract number
 
-            const startTimeKey = `exam_start_${params.id}`;
-            const storedStartTime = localStorage.getItem(startTimeKey);
-
-            if (storedStartTime) {
-                const startTime = parseInt(storedStartTime);
-                const now = Date.now();
-                const elapsedSeconds = Math.floor((now - startTime) / 1000);
-                const remaining = totalSeconds - elapsedSeconds;
-
-                if (remaining > 0) {
-                    setTimeLeft(remaining);
-                    setExamStarted(true);
+                if (durationStr.includes('jam')) {
+                    totalSeconds = num * 3600; // e.g. "2 Jam" -> 7200 sec
+                } else if (durationStr.includes('menit')) {
+                    totalSeconds = num * 60; // e.g. "120 Menit" -> 7200 sec
                 } else {
-                    setTimeLeft(0);
-                    setExamStarted(true);
-                    // Optionally handle auto-submit here if time passed while away
+                    totalSeconds = num * 60; // Fallback to minutes
                 }
-            } else {
-                setTimeLeft(totalSeconds);
+
+                const startTimeKey = `exam_start_${params.id}`;
+                const storedStartTime = localStorage.getItem(startTimeKey);
+
+                if (storedStartTime) {
+                    const startTime = parseInt(storedStartTime);
+                    const now = Date.now();
+                    const elapsedSeconds = Math.floor((now - startTime) / 1000);
+                    const remaining = totalSeconds - elapsedSeconds;
+
+                    if (remaining > 0) {
+                        setTimeLeft(remaining);
+                        setExamStarted(true);
+                    } else {
+                        setTimeLeft(0);
+                        setExamStarted(true);
+                    }
+                } else {
+                    setTimeLeft(totalSeconds);
+                }
             }
         }
     }, [exam, params.id]);
 
-    // Timer — only runs after exam started
+    // Timer — only runs after exam started and not unlimited
     useEffect(() => {
-        if (!examStarted || timeLeft <= 0 || submitted) return;
+        if (!examStarted || timeLeft <= 0 || submitted || isUnlimited) return;
         const timer = setInterval(() => {
             setTimeLeft((prev) => prev - 1);
         }, 1000);
         return () => clearInterval(timer);
-    }, [examStarted, timeLeft, submitted]);
+    }, [examStarted, timeLeft, submitted, isUnlimited]);
 
     // Anti-navigation: warn on refresh/close
     useEffect(() => {
@@ -211,7 +217,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
 
     // Countdown Audio & Visual Alerts
     useEffect(() => {
-        if (!examStarted || submitted) return;
+        if (!examStarted || submitted || isUnlimited) return;
 
         const playPing = () => {
             try {
@@ -250,7 +256,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         if (timeLeft === 60) {
             playPing();
         }
-    }, [timeLeft, examStarted, submitted]);
+    }, [timeLeft, examStarted, submitted, isUnlimited]);
 
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600);
@@ -259,7 +265,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
         return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
     };
 
-    const isLowTime = timeLeft < 600;
+    const isLowTime = !isUnlimited && timeLeft < 600;
 
     const handleStartExam = () => {
         if (!agreedToRules) return;
@@ -505,7 +511,7 @@ export default function ExamPage({ params: paramsPromise }: { params: Promise<{ 
                     <div className={`flex items-center gap-2.5 px-5 py-1.5 rounded-full border shadow-inner ${isLowTime ? 'bg-red-500/10 text-red-400 border-red-500/30 shadow-red-500/10 animate-pulse' : 'bg-slate-900/60 text-slate-200 border-slate-700/50 shadow-black/20'
                         }`}>
                         <Clock className="w-4 h-4" />
-                        <span className="font-mono font-medium text-lg tracking-widest">{formatTime(timeLeft)}</span>
+                        <span className="font-mono font-medium text-lg tracking-widest">{isUnlimited ? "--:--:--" : formatTime(timeLeft)}</span>
                     </div>
                 </div>
             </header>

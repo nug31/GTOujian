@@ -23,6 +23,7 @@ export default function NewExamPage() {
     const [isRemedial, setIsRemedial] = useState(false);
     const [parentExamId, setParentExamId] = useState("");
     const [examType, setExamType] = useState<'practice' | 'theory'>('practice');
+    const [isUnlimitedDuration, setIsUnlimitedDuration] = useState(false);
     const [questions, setQuestions] = useState<{ text: string }[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { exams, addExam, fetchAvailableClasses, fetchExams } = useAppStore();
@@ -81,7 +82,7 @@ export default function NewExamPage() {
         await addExam({
             title,
             description,
-            duration: `${duration} Menit`,
+            duration: isUnlimitedDuration ? "Tanpa Batas Waktu" : `${duration} Menit`,
             status: 'Aktif',
             imageUrl: finalImageUrl,
             targetClass: targetClass,
@@ -149,10 +150,26 @@ export default function NewExamPage() {
                             </div>
 
                             <div className="group">
-                                <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Durasi Hitung Mundur (Menit) <span className="text-red-500">*</span></label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-bold text-slate-700 group-focus-within:text-indigo-600 transition-colors">Durasi Pengerjaan (Menit) <span className="text-red-500">*</span></label>
+                                    <label className="flex items-center gap-2 cursor-pointer group/check">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={isUnlimitedDuration} 
+                                            onChange={(e) => setIsUnlimitedDuration(e.target.checked)}
+                                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all"
+                                        />
+                                        <span className="text-xs font-bold text-slate-500 group-hover/check:text-indigo-600 transition-colors">Tanpa Batas Waktu</span>
+                                    </label>
+                                </div>
                                 <input
-                                    required type="number" min="10" value={duration} onChange={(e) => setDuration(e.target.value)}
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm"
+                                    required={!isUnlimitedDuration} 
+                                    type="number" 
+                                    min="10" 
+                                    value={duration} 
+                                    onChange={(e) => setDuration(e.target.value)}
+                                    disabled={isUnlimitedDuration}
+                                    className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm ${isUnlimitedDuration ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
                                 />
                             </div>
 
