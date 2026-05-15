@@ -32,9 +32,9 @@ export default function LoginPage() {
                     throw new Error("NISN tidak terdaftar. Hubungi guru Anda.");
                 }
 
-                // If password is required, check it here. For now, we use NISN as password too for simplicity
-                if (password !== username && password !== "12345") {
-                    throw new Error("Password salah. Gunakan NISN atau password standar.");
+                // For student, password must be equal to NISN (username)
+                if (password !== username) {
+                    throw new Error("Password salah. Gunakan NISN sebagai kata sandi.");
                 }
 
                 // Store student info for the session
