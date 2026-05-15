@@ -152,6 +152,18 @@ export default function StudentDashboard() {
                                     }
                                 }
 
+                                // 3. Final Exam logic: Only show if all other exams are submitted
+                                if (exam.isFinalExam) {
+                                    const otherExams = exams.filter(e => 
+                                        e.id !== exam.id && 
+                                        !e.isFinalExam && 
+                                        (e.targetClass === "Semua Kelas" || !e.targetClass || e.targetClass === userInfo?.class)
+                                    );
+                                    
+                                    const allOtherSubmitted = otherExams.every(e => hasSubmitted(e.id));
+                                    if (!allOtherSubmitted) return false;
+                                }
+
                                 return true;
                             })
                             .map((exam, index) => {

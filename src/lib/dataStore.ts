@@ -12,6 +12,7 @@ export interface Exam {
     targetClass?: string;
     isRemedial?: boolean;
     parentExamId?: string;
+    isFinalExam?: boolean;
     examType?: 'practice' | 'theory';
     questions?: any[]; // JSON array of questions
 }
@@ -90,6 +91,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 targetClass: item.target_class,
                 isRemedial: item.is_remedial,
                 parentExamId: item.parent_exam_id,
+                isFinalExam: item.is_final_exam,
                 examType: item.exam_type,
                 questions: item.questions
             }));
@@ -153,6 +155,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 target_class: exam.targetClass === "Semua Kelas" ? null : exam.targetClass,
                 is_remedial: exam.isRemedial || false,
                 parent_exam_id: exam.parentExamId || null,
+                is_final_exam: exam.isFinalExam || false,
                 exam_type: exam.examType || 'practice',
                 questions: exam.questions || []
             }]);
@@ -174,6 +177,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
         if (updatedFields.isRemedial !== undefined) mappedFields.is_remedial = updatedFields.isRemedial;
         if (updatedFields.parentExamId !== undefined) mappedFields.parent_exam_id = updatedFields.parentExamId || null;
+        if (updatedFields.isFinalExam !== undefined) mappedFields.is_final_exam = updatedFields.isFinalExam;
         if (updatedFields.examType !== undefined) mappedFields.exam_type = updatedFields.examType;
         if (updatedFields.questions !== undefined) mappedFields.questions = updatedFields.questions;
 

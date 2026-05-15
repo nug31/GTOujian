@@ -23,6 +23,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     const [targetClass, setTargetClass] = useState("Semua Kelas");
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const [isRemedial, setIsRemedial] = useState(false);
+    const [isFinalExam, setIsFinalExam] = useState(false);
     const [parentExamId, setParentExamId] = useState("");
     const [examType, setExamType] = useState<'practice' | 'theory'>('practice');
     const [isUnlimitedDuration, setIsUnlimitedDuration] = useState(false);
@@ -67,6 +68,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                 }
             }
             setIsRemedial(exam.isRemedial || false);
+            setIsFinalExam(exam.isFinalExam || false);
             setParentExamId(exam.parentExamId || "");
             setExamType(exam.examType || 'practice');
             setQuestions(exam.questions || []);
@@ -126,6 +128,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
             imageUrl: finalImageUrl,
             targetClass: targetClass,
             isRemedial: isRemedial,
+            isFinalExam: isFinalExam,
             parentExamId: isRemedial ? parentExamId : undefined,
             examType,
             questions
@@ -139,7 +142,7 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 relative pb-12">
+        <div className="min-h-screen bg-slate-50 relative pb-12 font-sans selection:bg-indigo-500/30">
             {/* Header */}
             <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-20 shadow-sm">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">
@@ -150,44 +153,44 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="font-bold text-lg tracking-tight">Edit Soal: {params.id}</h1>
+                        <h1 className="font-bold text-lg tracking-tight font-outfit">Edit Soal: {params.id}</h1>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                 {!saved ? (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-                            <h2 className="text-xl font-bold text-slate-800">Perbarui Detail Ujian</h2>
-                            <p className="text-sm text-slate-500 mt-1">Ubah informasi ujian dan daftar soal untuk siswa.</p>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 overflow-hidden">
+                        <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+                            <h2 className="text-xl font-bold text-slate-900 font-outfit">Perbarui Detail Ujian</h2>
+                            <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">Ubah informasi ujian dan daftar soal untuk siswa.</p>
                         </div>
 
-                        <form onSubmit={handleSave} className="p-6 space-y-6">
+                        <form onSubmit={handleSave} className="p-8 space-y-8">
                             {/* Judul & Deskripsi */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Judul Ujian <span className="text-red-500">*</span></label>
+                            <div className="space-y-5">
+                                <div className="group">
+                                    <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Judul Ujian <span className="text-red-500">*</span></label>
                                     <input
                                         required type="text" value={title} onChange={(e) => setTitle(e.target.value)}
                                         placeholder="Contoh: Desain Velg Racing 17 Inch"
-                                        className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Instruksi / Deskripsi Singkat <span className="text-red-500">*</span></label>
+                                <div className="group">
+                                    <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Instruksi / Deskripsi Singkat <span className="text-red-500">*</span></label>
                                     <textarea
                                         required rows={3} value={description} onChange={(e) => setDescription(e.target.value)}
                                         placeholder="Berikan instruksi jelas (misal: set units ke mm, gunakan material Steel, dsb)."
-                                        className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm resize-none"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium resize-none shadow-sm"
                                     />
                                 </div>
                             </div>
 
                             <div className="group">
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <label className="block text-sm font-semibold text-slate-700">Durasi Pengerjaan (Menit) <span className="text-red-500">*</span></label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-bold text-slate-700 group-focus-within:text-indigo-600 transition-colors">Durasi Pengerjaan (Menit) <span className="text-red-500">*</span></label>
                                     <label className="flex items-center gap-2 cursor-pointer group/check">
                                         <input 
                                             type="checkbox" 
@@ -205,17 +208,17 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                     value={duration} 
                                     onChange={(e) => setDuration(e.target.value)}
                                     disabled={isUnlimitedDuration}
-                                    className={`w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm ${isUnlimitedDuration ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''}`}
+                                    className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm ${isUnlimitedDuration ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Target Kelas <span className="text-red-500">*</span></label>
+                            <div className="group">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Target Kelas <span className="text-red-500">*</span></label>
                                 <select
                                     required
                                     value={targetClass}
                                     onChange={(e) => setTargetClass(e.target.value)}
-                                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white font-medium"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm appearance-none bg-white font-medium"
                                 >
                                     <option value="Semua Kelas">Semua Kelas</option>
                                     {availableClasses.map((cls) => (
@@ -225,13 +228,13 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Paket <span className="text-red-500">*</span></label>
+                                <div className="group">
+                                    <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Tipe Paket <span className="text-red-500">*</span></label>
                                     <select
                                         required
                                         value={isRemedial ? "true" : "false"}
                                         onChange={(e) => setIsRemedial(e.target.value === "true")}
-                                        className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm appearance-none bg-white"
                                     >
                                         <option value="false">Ujian Utama (Reguler)</option>
                                         <option value="true">Ujian Remedial</option>
@@ -239,13 +242,13 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                 </div>
 
                                 {isRemedial && (
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ujian Utama Terkait <span className="text-red-500">*</span></label>
+                                    <div className="group">
+                                        <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-indigo-600 transition-colors">Ujian Utama Terkait <span className="text-red-500">*</span></label>
                                         <select
                                             required
                                             value={parentExamId}
                                             onChange={(e) => setParentExamId(e.target.value)}
-                                            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-slate-800 text-sm appearance-none bg-white font-medium"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 text-sm font-medium shadow-sm appearance-none bg-white font-medium"
                                         >
                                             <option value="" disabled>Pilih Sumber Ujian</option>
                                             {exams.filter(e => !e.isRemedial && e.id !== params.id).map((e) => (
@@ -256,53 +259,74 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                 )}
                             </div>
 
-                            <div className="pt-4 border-t border-slate-100">
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Ujian <span className="text-red-500">*</span></label>
-                                <div className="grid grid-cols-2 gap-3">
+                            {/* Final Exam Toggle */}
+                            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 flex items-center justify-between gap-4">
+                                <div className="flex-1">
+                                    <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4" /> Tandai sebagai Ujian Akhir
+                                    </h4>
+                                    <p className="text-[11px] text-blue-700/70 mt-1 font-medium leading-relaxed">
+                                        Jika diaktifkan, paket soal ini hanya akan muncul di dashboard siswa setelah mereka menyelesaikan seluruh tugas/praktik lainnya.
+                                    </p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        className="sr-only peer" 
+                                        checked={isFinalExam}
+                                        onChange={(e) => setIsFinalExam(e.target.checked)}
+                                    />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+
+                            <div className="pt-6 border-t border-slate-100">
+                                <label className="block text-sm font-bold text-slate-700 mb-3">Tipe Ujian <span className="text-red-500">*</span></label>
+                                <div className="grid grid-cols-2 gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setExamType('practice')}
-                                        className={`px-4 py-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'practice' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300 text-slate-600'}`}
+                                        className={`px-5 py-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'practice' ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-500/5' : 'border-slate-100 bg-slate-50 hover:border-slate-200 text-slate-600'}`}
                                     >
-                                        <span className="font-bold text-sm">Praktik (CAD)</span>
-                                        <span className="text-[10px] opacity-70">Butuh link Onshape</span>
+                                        <span className="font-bold text-sm font-outfit">Praktik (CAD)</span>
+                                        <span className="text-[10px] uppercase font-bold tracking-widest opacity-50">Blueprint CAD</span>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setExamType('theory')}
-                                        className={`px-4 py-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'theory' ? 'border-emerald-600 bg-emerald-50' : 'border-slate-200 hover:border-slate-300 text-slate-600'}`}
+                                        className={`px-5 py-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${examType === 'theory' ? 'border-emerald-600 bg-emerald-50 ring-4 ring-emerald-500/5' : 'border-slate-100 bg-slate-50 hover:border-slate-200 text-slate-600'}`}
                                     >
-                                        <span className="font-bold text-sm">Teori / Logika</span>
-                                        <span className="text-[10px] opacity-70">Input teks langsung</span>
+                                        <span className="font-bold text-sm font-outfit">Teori / Logika</span>
+                                        <span className="text-[10px] uppercase font-bold tracking-widest opacity-50">Soal Isian</span>
                                     </button>
                                 </div>
                             </div>
 
                             {examType === 'theory' && (
-                                <div className="pt-6 border-t border-slate-100 space-y-4">
+                                <div className="pt-6 border-t border-slate-100 space-y-5">
                                     <div className="flex items-center justify-between">
-                                        <label className="block text-sm font-semibold text-slate-700">Daftar Pertanyaan Esai/Logika</label>
+                                        <label className="block text-sm font-bold text-slate-700">Daftar Pertanyaan Esai/Logika</label>
                                         <button
                                             type="button"
                                             onClick={() => setQuestions([...questions, { text: "" }])}
-                                            className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-colors flex items-center gap-1"
+                                            className="text-[11px] font-bold text-indigo-600 hover:text-white hover:bg-indigo-600 bg-white px-4 py-2 rounded-xl border-2 border-indigo-100 hover:border-indigo-600 transition-all uppercase tracking-wider flex items-center gap-1.5 shadow-sm"
                                         >
                                             + Tambah Soal
                                         </button>
                                     </div>
                                     
                                     {questions.length === 0 && (
-                                        <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                                            <p className="text-slate-500 text-xs">Belum ada pertanyaan. Klik tombol di atas untuk menambah.</p>
+                                        <div className="text-center py-10 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200">
+                                            <p className="text-slate-400 text-xs font-medium">Belum ada pertanyaan. Klik tombol di atas untuk menambah.</p>
                                         </div>
                                     )}
 
                                     {questions.map((q, idx) => (
-                                        <div key={idx} className="relative group bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-slate-300 transition-all">
+                                        <div key={idx} className="relative group bg-slate-50/30 border border-slate-200 rounded-2xl p-5 hover:border-indigo-200 hover:bg-white transition-all shadow-sm">
                                             <div className="flex items-start gap-4">
-                                                <span className="mt-2.5 w-6 h-6 flex-shrink-0 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                <div className="mt-2 w-7 h-7 flex-shrink-0 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-xs font-bold text-slate-400 font-mono">
                                                     {idx + 1}
-                                                </span>
+                                                </div>
                                                 <textarea
                                                     required
                                                     value={q.text}
@@ -312,13 +336,13 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                                         setQuestions(newQ);
                                                     }}
                                                     placeholder="Tuliskan isi pertanyaan di sini..."
-                                                    className="w-full border-none p-0 outline-none text-sm text-slate-800 resize-none min-h-[60px] focus:ring-0"
+                                                    className="w-full bg-transparent border-none p-0 outline-none text-sm text-slate-800 font-medium resize-none min-h-[60px] focus:ring-0 leading-relaxed"
                                                     rows={Math.max(2, q.text.split('\n').length)}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setQuestions(questions.filter((_, i) => i !== idx))}
-                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                                                 >
                                                     <X className="w-4 h-4" />
                                                 </button>
@@ -329,8 +353,8 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                             )}
 
                             {/* Upload Gambar Blueprint */}
-                            <div className="pt-4 border-t border-slate-100">
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Gambar Blueprint Soal <span className="text-slate-400 font-normal">(Opsional untuk MVP)</span></label>
+                            <div className="pt-6 border-t border-slate-100">
+                                <label className="block text-sm font-bold text-slate-700 mb-3">Gambar Blueprint Referensi <span className="text-slate-400 font-normal ml-1">(Sangat disarankan untuk ujian praktik)</span></label>
 
                                 <input
                                     type="file"
@@ -343,27 +367,29 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                 {(() => {
                                     const displayUrl = previewUrl || storedImageUrl;
                                     return displayUrl ? (
-                                        <div className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center">
+                                        <div className="relative group rounded-3xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center shadow-inner">
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img src={displayUrl} alt="Preview" className="max-h-full object-contain" />
-                                            <button
-                                                type="button"
-                                                onClick={removePreview}
-                                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
+                                            <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                                <button
+                                                    type="button"
+                                                    onClick={removePreview}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-2xl shadow-xl transition-transform hover:scale-105 flex items-center text-sm font-bold"
+                                                >
+                                                    <X className="w-4 h-4 mr-2" /> Hapus Gambar
+                                                </button>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="border-2 border-dashed border-indigo-300 bg-indigo-50 hover:bg-slate-100 transition-colors rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group"
+                                            className="border-2 border-dashed border-slate-300 bg-slate-50/50 hover:bg-indigo-50/30 hover:border-indigo-300 transition-all rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer group shadow-sm hover:shadow-md"
                                         >
-                                            <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                            <div className="w-14 h-14 bg-white rounded-full shadow-[0_0_15px_rgba(0,0,0,0.05)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                                 <ImageIcon className="w-6 h-6 text-indigo-500" />
                                             </div>
-                                            <p className="text-sm font-medium text-slate-700">Ganti file gambar blueprint</p>
-                                            <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                                            <p className="text-sm font-bold text-slate-800 mb-1">Ganti file gambar blueprint</p>
+                                            <p className="text-xs text-slate-500 font-medium">PNG, JPG up to 5MB</p>
                                         </div>
                                     );
                                 })()}
@@ -376,26 +402,26 @@ export default function EditExamPage({ params: paramsPromise }: { params: Promis
                                 )}
                             </div>
 
-                            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                                <button type="button" onClick={() => router.back()} disabled={isUploading} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 font-medium text-sm rounded-lg transition-colors">
+                            <div className="pt-8 flex justify-end gap-3 border-t border-slate-100">
+                                <button type="button" onClick={() => router.back()} disabled={isUploading} className="px-6 py-3 text-slate-600 font-bold bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-sm rounded-xl transition-all shadow-sm">
                                     Batal
                                 </button>
-                                <button type="submit" disabled={isUploading} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center">
-                                    {isUploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengunggah...</> : <><Save className="w-4 h-4 mr-2" /> Perbarui Soal</>}
+                                <button type="submit" disabled={isUploading} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-bold text-sm rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] transition-all flex items-center uppercase tracking-wide border border-indigo-500">
+                                    {isUploading ? <><Loader2 className="w-4 h-4 mr-2.5 animate-spin" /> Mengunggah...</> : <><Save className="w-4 h-4 mr-2.5" /> Perbarui Soal</>}
                                 </button>
                             </div>
                         </form>
                     </motion.div>
                 ) : (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
-                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
-                            <CheckCircle2 className="w-8 h-8" />
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200">
+                        <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-6 shadow-inner ring-4 ring-green-50/50">
+                            <CheckCircle2 className="w-10 h-10" />
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Soal Berhasil Diperbarui!</h2>
-                        <p className="text-slate-500 mb-8 max-w-[300px] text-center">
-                            Perubahan pada bank soal telah berhasil disimpan.
+                        <h2 className="text-3xl font-bold text-slate-900 mb-3 font-outfit tracking-tight">Soal Berhasil Diperbarui!</h2>
+                        <p className="text-slate-500 mb-10 max-w-sm text-center leading-relaxed font-medium">
+                            Perubahan pada bank soal telah berhasil disimpan ke database.
                         </p>
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-300 border-t-indigo-600"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-200 border-t-indigo-600"></div>
                     </motion.div>
                 )}
             </main>

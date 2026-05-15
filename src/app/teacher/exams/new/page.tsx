@@ -21,6 +21,7 @@ export default function NewExamPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [isRemedial, setIsRemedial] = useState(false);
+    const [isFinalExam, setIsFinalExam] = useState(false);
     const [parentExamId, setParentExamId] = useState("");
     const [examType, setExamType] = useState<'practice' | 'theory'>('practice');
     const [isUnlimitedDuration, setIsUnlimitedDuration] = useState(false);
@@ -87,6 +88,7 @@ export default function NewExamPage() {
             imageUrl: finalImageUrl,
             targetClass: targetClass,
             isRemedial: isRemedial,
+            isFinalExam: isFinalExam,
             parentExamId: isRemedial ? parentExamId : undefined,
             examType,
             questions
@@ -218,6 +220,27 @@ export default function NewExamPage() {
                                         </select>
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Final Exam Toggle */}
+                            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 flex items-center justify-between gap-4">
+                                <div className="flex-1">
+                                    <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4" /> Tandai sebagai Ujian Akhir
+                                    </h4>
+                                    <p className="text-[11px] text-blue-700/70 mt-1 font-medium leading-relaxed">
+                                        Jika diaktifkan, paket soal ini hanya akan muncul di dashboard siswa setelah mereka menyelesaikan seluruh tugas/praktik lainnya.
+                                    </p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        className="sr-only peer" 
+                                        checked={isFinalExam}
+                                        onChange={(e) => setIsFinalExam(e.target.checked)}
+                                    />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
                             </div>
 
                             {/* Exam Type Selection */}
